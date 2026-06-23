@@ -78,7 +78,7 @@ async function creditRewards(childId, xp, money, choreId) {
     if (s >= 30) badges.push(['streak_30', '30-Day Streak', 'streak']);
   }
 
-  const insertBadge = db.prepare('INSERT OR IGNORE INTO achievements (id, child_id, badge_id, badge_name, badge_category, xp_reward) VALUES (?, ?, ?, ?, ?, 0)');
+  const insertBadge = db.prepare('INSERT INTO achievements (id, child_id, badge_id, badge_name, badge_category, xp_reward) VALUES (?, ?, ?, ?, ?, 0) ON CONFLICT (child_id, badge_id) DO NOTHING');
   for (const [id, name, cat] of badges) {
     await insertBadge.run(uuidv4(), childId, id, name, cat);
   }

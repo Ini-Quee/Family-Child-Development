@@ -92,20 +92,19 @@ function notifyParentOfLockout(childId, attempts) {
   }
 }
 
-// Audit logging
+// Audit logging (fire and forget — async)
 function logAuditEvent(userId, action, details = {}) {
   try {
     db.prepare(`INSERT INTO audit_log (id, user_id, action, details, ip_address, created_at)
-      VALUES (?, ?, ?, ?, ?, datetime('now'))`).run(
+      VALUES (?, ?, ?, ?, ?, NOW())`).run(
       require('uuid').v4(),
       userId,
       action,
       JSON.stringify(details),
       details.ip || null
-    );
+    ).catch(() => {}); // Fire and forget
   } catch (err) {
-    // Table might not exist yet — fail silently
-    console.error('Audit log error:', err.message);
+    // Fail silently — audit logging should never crash the app
   }
 }
 

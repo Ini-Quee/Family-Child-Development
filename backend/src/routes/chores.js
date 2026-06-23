@@ -13,7 +13,7 @@ function getClientIp(req) {
 // GET /api/chores
 router.get('/', authenticate, async (req, res) => {
   try {
-    const chores = await db.prepare('SELECT * FROM chores WHERE family_id = ? AND is_active = 1 ORDER BY category, title').all(req.user.familyId);
+    const chores = await db.prepare('SELECT * FROM chores WHERE family_id = ? AND is_active = true ORDER BY category, title').all(req.user.familyId);
     res.json({ chores });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch chores' });
@@ -61,7 +61,7 @@ router.post('/', authenticate, async (req, res) => {
     // Auto-assign to children for today
     if (assignTo && Array.isArray(assignTo)) {
       const today = new Date().toISOString().split('T')[0];
-      const insert = db.prepare('INSERT OR IGNORE INTO chore_assignments (id, chore_id, child_id, assigned_date, status) VALUES (?, ?, ?, ?, ?)');
+      const insert = db.prepare('INSERT INTO chore_assignments (id, chore_id, child_id, assigned_date, status) VALUES (?, ?, ?, ?, ?) ON CONFLICT DO NOTHING');
       for (const childId of assignTo) {
         await insert.run(uuidv4(), choreId, childId, today, 'pending');
       }
