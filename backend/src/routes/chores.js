@@ -11,9 +11,9 @@ function getClientIp(req) {
 }
 
 // GET /api/chores
-router.get('/', authenticate, (req, res) => {
+router.get('/', authenticate, async (req, res) => {
   try {
-    const chores = db.prepare('SELECT * FROM chores WHERE family_id = ? AND is_active = 1 ORDER BY category, title').all(req.user.familyId);
+    const chores = await db.prepare('SELECT * FROM chores WHERE family_id = ? AND is_active = 1 ORDER BY category, title').all(req.user.familyId);
     res.json({ chores });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch chores' });
@@ -21,7 +21,7 @@ router.get('/', authenticate, (req, res) => {
 });
 
 // POST /api/chores
-router.post('/', authenticate, (req, res) => {
+router.post('/', authenticate, async (req, res) => {
   try {
     if (req.user.role !== 'parent') return res.status(403).json({ error: 'Only parents can create chores' });
 
@@ -43,7 +43,7 @@ router.post('/', authenticate, (req, res) => {
       for (const childId of assignTo) {
         if (!validators.uuid(childId)) return res.status(400).json({ error: 'Invalid child ID in assignTo' });
         // Verify child belongs to family
-        const child = db.prepare('SELECT family_id FROM children WHERE id = ?').get(childId);
+        const child = await db.prepare('SELECT family_id FROM children WHERE id = ?').get(childId);
         if (!child || child.family_id !== req.user.familyId) {
           return res.status(403).json({ error: 'Cannot assign to child outside your family' });
         }
@@ -51,7 +51,7 @@ router.post('/', authenticate, (req, res) => {
     }
 
     const choreId = uuidv4();
-    db.prepare(`INSERT INTO chores (id, family_id, created_by, title, description, category, difficulty, xp_value, money_value, estimated_minutes, requires_photo, requires_approval, recurrence)
+    await db.prepare(`INSERT INTO chores (id, family_id, created_by, title, description, category, difficulty, xp_value, money_value, estimated_minutes, requires_photo, requires_approval, recurrence)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
       choreId, req.user.familyId, req.user.id, sanitize(title), description ? sanitize(description) : null,
       category || 'other', difficulty || 'medium', xpValue || 10, moneyValue || 0,
@@ -63,13 +63,13 @@ router.post('/', authenticate, (req, res) => {
       const today = new Date().toISOString().split('T')[0];
       const insert = db.prepare('INSERT OR IGNORE INTO chore_assignments (id, chore_id, child_id, assigned_date, status) VALUES (?, ?, ?, ?, ?)');
       for (const childId of assignTo) {
-        insert.run(uuidv4(), choreId, childId, today, 'pending');
+        await insert.run(uuidv4(), choreId, childId, today, 'pending');
       }
     }
 
     logAuditEvent(req.user.id, 'chore_created', { choreId, title: sanitize(title), assignTo, ip: getClientIp(req) });
 
-    const chore = db.prepare('SELECT * FROM chores WHERE id = ?').get(choreId);
+    const chore = await db.prepare('SELECT * FROM chores WHERE id = ?').get(choreId);
     res.status(201).json({ chore });
   } catch (err) {
     console.error('Create chore error:', err);
@@ -78,13 +78,13 @@ router.post('/', authenticate, (req, res) => {
 });
 
 // PUT /api/chores/:id
-router.put('/:id', authenticate, (req, res) => {
+router.put('/:id', authenticate, async (req, res) => {
   try {
     if (req.user.role !== 'parent') return res.status(403).json({ error: 'Only parents can update chores' });
     if (!validators.uuid(req.params.id)) return res.status(400).json({ error: 'Invalid chore ID' });
 
     // IDOR check
-    const existing = db.prepare('SELECT family_id FROM chores WHERE id = ?').get(req.params.id);
+    const existing = await db.prepare('SELECT family_id FROM chores WHERE id = ?').get(req.params.id);
     if (!existing || existing.family_id !== req.user.familyId) return res.status(403).json({ error: 'Access denied' });
 
     const { title, description, category, difficulty, xpValue, moneyValue } = req.body;
@@ -92,9 +92,9 @@ router.put('/:id', authenticate, (req, res) => {
     if (category && !validators.category(category)) return res.status(400).json({ error: 'Invalid category' });
     if (difficulty && !validators.difficulty(difficulty)) return res.status(400).json({ error: 'Invalid difficulty' });
 
-    db.prepare(`UPDATE chores SET title = COALESCE(?, title), description = COALESCE(?, description),
+    await db.prepare(`UPDATE chores SET title = COALESCE(?, title), description = COALESCE(?, description),
       category = COALESCE(?, category), difficulty = COALESCE(?, difficulty),
-      xp_value = COALESCE(?, xp_value), money_value = COALESCE(?, money_value), updated_at = datetime('now')
+      xp_value = COALESCE(?, xp_value), money_value = COALESCE(?, money_value), updated_at = NOW()
       WHERE id = ? AND family_id = ?`).run(
       title ? sanitize(title) : null, description ? sanitize(description) : null,
       category, difficulty, xpValue, moneyValue, req.params.id, req.user.familyId
@@ -102,7 +102,7 @@ router.put('/:id', authenticate, (req, res) => {
 
     logAuditEvent(req.user.id, 'chore_updated', { choreId: req.params.id, ip: getClientIp(req) });
 
-    const chore = db.prepare('SELECT * FROM chores WHERE id = ?').get(req.params.id);
+    const chore = await db.prepare('SELECT * FROM chores WHERE id = ?').get(req.params.id);
     res.json({ chore });
   } catch (err) {
     res.status(500).json({ error: 'Failed to update chore' });
@@ -110,15 +110,15 @@ router.put('/:id', authenticate, (req, res) => {
 });
 
 // DELETE /api/chores/:id
-router.delete('/:id', authenticate, (req, res) => {
+router.delete('/:id', authenticate, async (req, res) => {
   try {
     if (req.user.role !== 'parent') return res.status(403).json({ error: 'Only parents can delete chores' });
     if (!validators.uuid(req.params.id)) return res.status(400).json({ error: 'Invalid chore ID' });
 
-    const existing = db.prepare('SELECT family_id FROM chores WHERE id = ?').get(req.params.id);
+    const existing = await db.prepare('SELECT family_id FROM chores WHERE id = ?').get(req.params.id);
     if (!existing || existing.family_id !== req.user.familyId) return res.status(403).json({ error: 'Access denied' });
 
-    db.prepare('UPDATE chores SET is_active = 0, updated_at = datetime("now") WHERE id = ? AND family_id = ?').run(req.params.id, req.user.familyId);
+    await db.prepare('UPDATE chores SET is_active = 0, updated_at = NOW() WHERE id = ? AND family_id = ?').run(req.params.id, req.user.familyId);
 
     logAuditEvent(req.user.id, 'chore_deleted', { choreId: req.params.id, ip: getClientIp(req) });
 

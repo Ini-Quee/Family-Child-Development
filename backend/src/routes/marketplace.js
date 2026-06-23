@@ -14,11 +14,11 @@ function getClientIp(req) {
 // TRUST SCORE ENGINE
 // ============================================
 
-function getTrustScore(childId) {
-  let trust = db.prepare('SELECT * FROM trust_scores WHERE child_id = ?').get(childId);
+async function getTrustScore(childId) {
+  let trust = await db.prepare('SELECT * FROM trust_scores WHERE child_id = ?').get(childId);
   if (!trust) {
-    db.prepare('INSERT INTO trust_scores (id, child_id) VALUES (?, ?)').run(uuidv4(), childId);
-    trust = db.prepare('SELECT * FROM trust_scores WHERE child_id = ?').get(childId);
+    await db.prepare('INSERT INTO trust_scores (id, child_id) VALUES (?, ?)').run(uuidv4(), childId);
+    trust = await db.prepare('SELECT * FROM trust_scores WHERE child_id = ?').get(childId);
   }
 
   // Calculate dynamic score
@@ -49,16 +49,16 @@ function getTrustScore(childId) {
   score = Math.max(0, Math.min(100, Math.round(score)));
 
   // Update the stored score
-  db.prepare('UPDATE trust_scores SET score = ?, updated_at = datetime("now") WHERE child_id = ?').run(score, childId);
+  await db.prepare('UPDATE trust_scores SET score = ?, updated_at = NOW() WHERE child_id = ?').run(score, childId);
 
   return score;
 }
 
-function updateTrustOnCompletion(childId, onTime, qualityRating, parentRating) {
-  let trust = db.prepare('SELECT * FROM trust_scores WHERE child_id = ?').get(childId);
+async function updateTrustOnCompletion(childId, onTime, qualityRating, parentRating) {
+  let trust = await db.prepare('SELECT * FROM trust_scores WHERE child_id = ?').get(childId);
   if (!trust) {
-    db.prepare('INSERT INTO trust_scores (id, child_id) VALUES (?, ?)').run(uuidv4(), childId);
-    trust = db.prepare('SELECT * FROM trust_scores WHERE child_id = ?').get(childId);
+    await db.prepare('INSERT INTO trust_scores (id, child_id) VALUES (?, ?)').run(uuidv4(), childId);
+    trust = await db.prepare('SELECT * FROM trust_scores WHERE child_id = ?').get(childId);
   }
 
   const updates = {};
@@ -73,26 +73,26 @@ function updateTrustOnCompletion(childId, onTime, qualityRating, parentRating) {
   }
 
   // Update streak bonus
-  const child = db.prepare('SELECT current_streak_days FROM children WHERE id = ?').get(childId);
+  const child = await db.prepare('SELECT current_streak_days FROM children WHERE id = ?').get(childId);
   if (child) updates.streak_bonus = child.current_streak_days;
 
   const setClauses = Object.keys(updates).map(k => `${k} = ?`).join(', ');
   const values = Object.values(updates);
   if (setClauses) {
-    db.prepare(`UPDATE trust_scores SET ${setClauses}, updated_at = datetime("now") WHERE child_id = ?`).run(...values, childId);
+    await db.prepare(`UPDATE trust_scores SET ${setClauses}, updated_at = NOW() WHERE child_id = ?`).run(...values, childId);
   }
 
   return getTrustScore(childId);
 }
 
-function updateTrustOnRejection(childId) {
-  let trust = db.prepare('SELECT * FROM trust_scores WHERE child_id = ?').get(childId);
+async function updateTrustOnRejection(childId) {
+  let trust = await db.prepare('SELECT * FROM trust_scores WHERE child_id = ?').get(childId);
   if (!trust) {
-    db.prepare('INSERT INTO trust_scores (id, child_id) VALUES (?, ?)').run(uuidv4(), childId);
-    trust = db.prepare('SELECT * FROM trust_scores WHERE child_id = ?').get(childId);
+    await db.prepare('INSERT INTO trust_scores (id, child_id) VALUES (?, ?)').run(uuidv4(), childId);
+    trust = await db.prepare('SELECT * FROM trust_scores WHERE child_id = ?').get(childId);
   }
 
-  db.prepare('UPDATE trust_scores SET rejections = ?, updated_at = datetime("now") WHERE child_id = ?').run(
+  await db.prepare('UPDATE trust_scores SET rejections = ?, updated_at = NOW() WHERE child_id = ?').run(
     trust.rejections + 1, childId
   );
 
@@ -104,19 +104,19 @@ function updateTrustOnRejection(childId) {
 // ============================================
 
 // GET /api/marketplace — List available jobs for a child
-router.get('/', authenticate, (req, res) => {
+router.get('/', authenticate, async (req, res) => {
   try {
     const childId = req.user.role === 'child' ? req.user.id : req.query.childId;
     if (!childId) return res.status(400).json({ error: 'Child ID required' });
 
-    const child = db.prepare('SELECT age, family_id FROM children WHERE id = ?').get(childId);
+    const child = await db.prepare('SELECT age, family_id FROM children WHERE id = ?').get(childId);
     if (!child) return res.status(404).json({ error: 'Child not found' });
 
-    const trustScore = getTrustScore(childId);
+    const trustScore = await getTrustScore(childId);
     const today = new Date().toISOString().split('T')[0];
 
     // Get available chores that match child's age and trust
-    const jobs = db.prepare(`
+    const jobs = await db.prepare(`
       SELECT c.*,
         (SELECT COUNT(*) FROM bids b WHERE b.chore_id = c.id AND b.status = 'pending') as bid_count,
         (SELECT b.bid_amount FROM bids b WHERE b.chore_id = c.id AND b.child_id = ?) as my_bid,
@@ -151,7 +151,7 @@ router.get('/', authenticate, (req, res) => {
 });
 
 // POST /api/marketplace/bid — Place a bid on a premium job
-router.post('/bid', authenticate, (req, res) => {
+router.post('/bid', authenticate, async (req, res) => {
   try {
     if (req.user.role !== 'child') return res.status(403).json({ error: 'Only children can bid' });
 
@@ -160,10 +160,10 @@ router.post('/bid', authenticate, (req, res) => {
     if (!bidAmount || bidAmount < 0 || bidAmount > 100) return res.status(400).json({ error: 'Invalid bid amount' });
 
     const childId = req.user.id;
-    const trustScore = getTrustScore(childId);
+    const trustScore = await getTrustScore(childId);
 
     // Get the chore
-    const chore = db.prepare('SELECT * FROM chores WHERE id = ? AND family_id = ?').get(choreId, req.user.familyId);
+    const chore = await db.prepare('SELECT * FROM chores WHERE id = ? AND family_id = ?').get(choreId, req.user.familyId);
     if (!chore) return res.status(404).json({ error: 'Job not found' });
     if (chore.job_type !== 'premium' && chore.job_type !== 'sos') {
       return res.status(400).json({ error: 'This job does not accept bids' });
@@ -183,35 +183,35 @@ router.post('/bid', authenticate, (req, res) => {
     }
 
     // Check if child already bid
-    const existingBid = db.prepare('SELECT id FROM bids WHERE chore_id = ? AND child_id = ?').get(choreId, childId);
+    const existingBid = await db.prepare('SELECT id FROM bids WHERE chore_id = ? AND child_id = ?').get(choreId, childId);
     if (existingBid) return res.status(409).json({ error: 'You already bid on this job' });
 
     // Check max bidders
-    const bidCount = db.prepare('SELECT COUNT(*) as count FROM bids WHERE chore_id = ?').get(choreId);
+    const bidCount = await db.prepare('SELECT COUNT(*) as count FROM bids WHERE chore_id = ?').get(choreId);
     if (bidCount.count >= chore.max_bidders) {
       return res.status(400).json({ error: 'Maximum bidders reached' });
     }
 
     // Check child has enough balance for bid
-    const wallet = db.prepare('SELECT balance FROM wallets WHERE child_id = ?').get(childId);
+    const wallet = await db.prepare('SELECT balance FROM wallets WHERE child_id = ?').get(childId);
     if (!wallet || wallet.balance < bidAmount) {
       return res.status(400).json({ error: 'Insufficient balance for bid' });
     }
 
     // Place bid
     const bidId = uuidv4();
-    db.prepare('INSERT INTO bids (id, chore_id, child_id, bid_amount) VALUES (?, ?, ?, ?)').run(
+    await db.prepare('INSERT INTO bids (id, chore_id, child_id, bid_amount) VALUES (?, ?, ?, ?)').run(
       bidId, choreId, childId, bidAmount
     );
 
     // Deduct bid amount from wallet (held in escrow)
     const newBalance = (wallet.balance - bidAmount).toFixed(2);
-    db.prepare('UPDATE wallets SET balance = ?, updated_at = datetime("now") WHERE child_id = ?').run(
+    await db.prepare('UPDATE wallets SET balance = ?, updated_at = NOW() WHERE child_id = ?').run(
       parseFloat(newBalance), childId
     );
 
     // Record transaction
-    db.prepare('INSERT INTO financial_transactions (id, child_id, wallet_id, type, amount, category, description, balance_after) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(
+    await db.prepare('INSERT INTO financial_transactions (id, child_id, wallet_id, type, amount, category, description, balance_after) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(
       uuidv4(), childId, wallet.id, 'bid_held', bidAmount, 'marketplace', `Bid on: ${chore.title}`, parseFloat(newBalance)
     );
 
@@ -225,7 +225,7 @@ router.post('/bid', authenticate, (req, res) => {
 });
 
 // POST /api/marketplace/accept-sos — Accept an SOS task (first come, first served)
-router.post('/accept-sos', authenticate, (req, res) => {
+router.post('/accept-sos', authenticate, async (req, res) => {
   try {
     if (req.user.role !== 'child') return res.status(403).json({ error: 'Only children can accept SOS tasks' });
 
@@ -235,16 +235,16 @@ router.post('/accept-sos', authenticate, (req, res) => {
     const childId = req.user.id;
     const today = new Date().toISOString().split('T')[0];
 
-    const chore = db.prepare('SELECT * FROM chores WHERE id = ? AND job_type = "sos" AND is_active = 1').get(choreId);
+    const chore = await db.prepare('SELECT * FROM chores WHERE id = ? AND job_type = "sos" AND is_active = 1').get(choreId);
     if (!chore) return res.status(404).json({ error: 'SOS task not found' });
 
     // Check if already assigned
-    const existing = db.prepare('SELECT id FROM chore_assignments WHERE chore_id = ? AND assigned_date = ?').get(choreId, today);
+    const existing = await db.prepare('SELECT id FROM chore_assignments WHERE chore_id = ? AND assigned_date = ?').get(choreId, today);
     if (existing) return res.status(409).json({ error: 'This SOS task has already been taken' });
 
     // Assign immediately
     const assignmentId = uuidv4();
-    db.prepare('INSERT INTO chore_assignments (id, chore_id, child_id, assigned_date, status) VALUES (?, ?, ?, ?, ?)').run(
+    await db.prepare('INSERT INTO chore_assignments (id, chore_id, child_id, assigned_date, status) VALUES (?, ?, ?, ?, ?)').run(
       assignmentId, choreId, childId, today, 'in_progress'
     );
 
@@ -258,16 +258,16 @@ router.post('/accept-sos', authenticate, (req, res) => {
 });
 
 // GET /api/marketplace/trust/:childId — Get trust score details
-router.get('/trust/:childId', authenticate, (req, res) => {
+router.get('/trust/:childId', authenticate, async (req, res) => {
   try {
     if (!validators.uuid(req.params.childId)) return res.status(400).json({ error: 'Invalid child ID' });
 
     // IDOR check
-    const child = db.prepare('SELECT family_id FROM children WHERE id = ?').get(req.params.childId);
+    const child = await db.prepare('SELECT family_id FROM children WHERE id = ?').get(req.params.childId);
     if (!child || child.family_id !== req.user.familyId) return res.status(403).json({ error: 'Access denied' });
 
-    const score = getTrustScore(req.params.childId);
-    const details = db.prepare('SELECT * FROM trust_scores WHERE child_id = ?').get(req.params.childId);
+    const score = await getTrustScore(req.params.childId);
+    const details = await db.prepare('SELECT * FROM trust_scores WHERE child_id = ?').get(req.params.childId);
 
     // Calculate breakdown
     const breakdown = {

@@ -15,23 +15,23 @@ function getClientIp(req) {
 // ============================================
 
 // GET /api/screen-time/balance — Get remaining screen time
-router.get('/balance', authenticate, (req, res) => {
+router.get('/balance', authenticate, async (req, res) => {
   try {
     const childId = req.user.role === 'child' ? req.user.id : req.query.childId;
     if (!childId) return res.status(400).json({ error: 'Child ID required' });
 
     // IDOR check
     if (req.user.role === 'child' && childId !== req.user.id) return res.status(403).json({ error: 'Access denied' });
-    const child = db.prepare('SELECT family_id FROM children WHERE id = ?').get(childId);
+    const child = await db.prepare('SELECT family_id FROM children WHERE id = ?').get(childId);
     if (!child || (req.user.role === 'parent' && child.family_id !== req.user.familyId)) return res.status(403).json({ error: 'Access denied' });
 
     const today = new Date().toISOString().split('T')[0];
     const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
 
     // Get today's purchases
-    const purchases = db.prepare(`
+    const purchases = await db.prepare(`
       SELECT * FROM screen_time_purchases
-      WHERE child_id = ? AND created_at >= ? AND (expires_at IS NULL OR expires_at > datetime('now'))
+      WHERE child_id = ? AND created_at >= ? AND (expires_at IS NULL OR expires_at > NOW())
       ORDER BY created_at DESC
     `).all(childId, today);
 
@@ -40,7 +40,7 @@ router.get('/balance', authenticate, (req, res) => {
     const totalRemaining = totalPurchased - totalUsed;
 
     // Get exchange rate from economy config
-    const config = db.prepare('SELECT * FROM economy_config WHERE family_id = ?').get(child.family_id);
+    const config = await db.prepare('SELECT * FROM economy_config WHERE family_id = ?').get(child.family_id);
     const rate = config?.screen_time_rate || 2.50;
 
     // Get available packages
@@ -51,7 +51,7 @@ router.get('/balance', authenticate, (req, res) => {
     ];
 
     // Get free time earned from exercise today
-    const exercise = db.prepare(`
+    const exercise = await db.prepare(`
       SELECT SUM(screen_time_earned) as free_minutes FROM exercise_log
       WHERE child_id = ? AND created_at >= ?
     `).get(childId, today);
@@ -73,7 +73,7 @@ router.get('/balance', authenticate, (req, res) => {
 });
 
 // POST /api/screen-time/purchase — Buy screen time
-router.post('/purchase', authenticate, (req, res) => {
+router.post('/purchase', authenticate, async (req, res) => {
   try {
     if (req.user.role !== 'child') return res.status(403).json({ error: 'Only children can purchase screen time' });
 
@@ -82,8 +82,8 @@ router.post('/purchase', authenticate, (req, res) => {
     const ip = getClientIp(req);
 
     // Get economy config
-    const child = db.prepare('SELECT family_id FROM children WHERE id = ?').get(childId);
-    const config = db.prepare('SELECT * FROM economy_config WHERE family_id = ?').get(child.family_id);
+    const child = await db.prepare('SELECT family_id FROM children WHERE id = ?').get(childId);
+    const config = await db.prepare('SELECT * FROM economy_config WHERE family_id = ?').get(child.family_id);
     const rate = config?.screen_time_rate || 2.50;
 
     const packages = {
@@ -96,26 +96,26 @@ router.post('/purchase', authenticate, (req, res) => {
     if (!pkg) return res.status(400).json({ error: 'Invalid package' });
 
     // Check wallet balance
-    const wallet = db.prepare('SELECT * FROM wallets WHERE child_id = ?').get(childId);
+    const wallet = await db.prepare('SELECT * FROM wallets WHERE child_id = ?').get(childId);
     if (!wallet || wallet.balance < pkg.cost) {
       return res.status(400).json({ error: 'Insufficient balance' });
     }
 
     // Deduct from wallet
     const newBalance = (wallet.balance - pkg.cost).toFixed(2);
-    db.prepare('UPDATE wallets SET balance = ?, total_spent = ?, updated_at = datetime("now") WHERE id = ?').run(
+    await db.prepare('UPDATE wallets SET balance = ?, total_spent = ?, updated_at = NOW() WHERE id = ?').run(
       parseFloat(newBalance), (wallet.total_spent + pkg.cost).toFixed(2), wallet.id
     );
 
     // Record purchase
     const purchaseId = uuidv4();
-    db.prepare('INSERT INTO screen_time_purchases (id, child_id, minutes, cost, remaining_minutes, expires_at) VALUES (?, ?, ?, ?, ?, ?)').run(
+    await db.prepare('INSERT INTO screen_time_purchases (id, child_id, minutes, cost, remaining_minutes, expires_at) VALUES (?, ?, ?, ?, ?, ?)').run(
       purchaseId, childId, pkg.minutes, pkg.cost, pkg.minutes,
       new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // Expires in 24 hours
     );
 
     // Record transaction
-    db.prepare('INSERT INTO financial_transactions (id, child_id, wallet_id, type, amount, category, description, balance_after) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(
+    await db.prepare('INSERT INTO financial_transactions (id, child_id, wallet_id, type, amount, category, description, balance_after) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(
       uuidv4(), childId, wallet.id, 'spending', pkg.cost, 'screen_time', `Screen time: ${pkg.minutes} min`, parseFloat(newBalance)
     );
 
@@ -132,7 +132,7 @@ router.post('/purchase', authenticate, (req, res) => {
 });
 
 // POST /api/screen-time/use — Log screen time usage
-router.post('/use', authenticate, (req, res) => {
+router.post('/use', authenticate, async (req, res) => {
   try {
     if (req.user.role !== 'child') return res.status(403).json({ error: 'Only children can log screen time' });
 
@@ -142,16 +142,16 @@ router.post('/use', authenticate, (req, res) => {
     if (!minutes || minutes < 1 || minutes > 480) return res.status(400).json({ error: 'Invalid minutes' });
 
     // Find oldest unused purchase with remaining minutes
-    const purchase = db.prepare(`
+    const purchase = await db.prepare(`
       SELECT * FROM screen_time_purchases
-      WHERE child_id = ? AND remaining_minutes > 0 AND (expires_at IS NULL OR expires_at > datetime('now'))
+      WHERE child_id = ? AND remaining_minutes > 0 AND (expires_at IS NULL OR expires_at > NOW())
       ORDER BY created_at ASC LIMIT 1
     `).get(childId);
 
     if (!purchase) return res.status(400).json({ error: 'No screen time available' });
 
     const used = Math.min(minutes, purchase.remaining_minutes);
-    db.prepare('UPDATE screen_time_purchases SET used_minutes = used_minutes + ?, remaining_minutes = remaining_minutes - ? WHERE id = ?').run(
+    await db.prepare('UPDATE screen_time_purchases SET used_minutes = used_minutes + ?, remaining_minutes = remaining_minutes - ? WHERE id = ?').run(
       used, used, purchase.id
     );
 
@@ -166,7 +166,7 @@ router.post('/use', authenticate, (req, res) => {
 // ============================================
 
 // GET /api/mood/today — Get today's mood
-router.get('/today', authenticate, (req, res) => {
+router.get('/today', authenticate, async (req, res) => {
   try {
     const childId = req.user.role === 'child' ? req.user.id : req.query.childId;
     if (!childId) return res.status(400).json({ error: 'Child ID required' });
@@ -175,7 +175,7 @@ router.get('/today', authenticate, (req, res) => {
     if (req.user.role === 'child' && childId !== req.user.id) return res.status(403).json({ error: 'Access denied' });
 
     const today = new Date().toISOString().split('T')[0];
-    const mood = db.prepare('SELECT * FROM mood_checkins WHERE child_id = ? AND created_at >= ? ORDER BY created_at DESC LIMIT 1').get(childId, today);
+    const mood = await db.prepare('SELECT * FROM mood_checkins WHERE child_id = ? AND created_at >= ? ORDER BY created_at DESC LIMIT 1').get(childId, today);
 
     res.json({ mood: mood || null, checkedIn: !!mood });
   } catch (err) {
@@ -184,7 +184,7 @@ router.get('/today', authenticate, (req, res) => {
 });
 
 // POST /api/mood/checkin — Submit mood check-in
-router.post('/checkin', authenticate, (req, res) => {
+router.post('/checkin', authenticate, async (req, res) => {
   try {
     if (req.user.role !== 'child') return res.status(403).json({ error: 'Only children can check in' });
 
@@ -196,7 +196,7 @@ router.post('/checkin', authenticate, (req, res) => {
     if (energy !== undefined && (energy < 1 || energy > 10)) return res.status(400).json({ error: 'Energy must be 1-10' });
 
     const id = uuidv4();
-    db.prepare('INSERT INTO mood_checkins (id, child_id, mood, energy, context_tags, private_note) VALUES (?, ?, ?, ?, ?, ?)').run(
+    await db.prepare('INSERT INTO mood_checkins (id, child_id, mood, energy, context_tags, private_note) VALUES (?, ?, ?, ?, ?, ?)').run(
       id, childId, mood, energy || 5,
       contextTags ? JSON.stringify(contextTags) : null,
       privateNote || null // Private — never shown to parent
@@ -209,7 +209,7 @@ router.post('/checkin', authenticate, (req, res) => {
 });
 
 // GET /api/mood/history — Get mood history (child sees own, parent sees trend only)
-router.get('/history', authenticate, (req, res) => {
+router.get('/history', authenticate, async (req, res) => {
   try {
     const childId = req.user.role === 'child' ? req.user.id : req.query.childId;
     if (!childId) return res.status(400).json({ error: 'Child ID required' });
@@ -218,11 +218,11 @@ router.get('/history', authenticate, (req, res) => {
     if (req.user.role === 'child' && childId !== req.user.id) return res.status(403).json({ error: 'Access denied' });
 
     const days = parseInt(req.query.days) || 7;
-    const moods = db.prepare(`
+    const moods = await db.prepare(`
       SELECT mood, energy, context_tags, created_at FROM mood_checkins
-      WHERE child_id = ? AND created_at >= datetime('now', ?)
+      WHERE child_id = ? AND created_at >= NOW() - INTERVAL '${days} days'
       ORDER BY created_at DESC
-    `).all(childId, `-${days} days`);
+    `).all(childId);
 
     // Parents only see mood + date, never private notes
     const result = moods.map(m => ({
@@ -243,17 +243,17 @@ router.get('/history', authenticate, (req, res) => {
 // ============================================
 
 // GET /api/academics — Get all subjects for a child
-router.get('/', authenticate, (req, res) => {
+router.get('/', authenticate, async (req, res) => {
   try {
     const childId = req.user.role === 'child' ? req.user.id : req.query.childId;
     if (!childId) return res.status(400).json({ error: 'Child ID required' });
 
     // IDOR check
     if (req.user.role === 'child' && childId !== req.user.id) return res.status(403).json({ error: 'Access denied' });
-    const child = db.prepare('SELECT family_id FROM children WHERE id = ?').get(childId);
+    const child = await db.prepare('SELECT family_id FROM children WHERE id = ?').get(childId);
     if (!child || (req.user.role === 'parent' && child.family_id !== req.user.familyId)) return res.status(403).json({ error: 'Access denied' });
 
-    const subjects = db.prepare('SELECT * FROM academic_subjects WHERE child_id = ? ORDER BY name').all(childId);
+    const subjects = await db.prepare('SELECT * FROM academic_subjects WHERE child_id = ? ORDER BY name').all(childId);
 
     // Calculate GPA
     const gradesWithNumeric = subjects.filter(s => s.grade_numeric);
@@ -263,12 +263,12 @@ router.get('/', authenticate, (req, res) => {
 
     // Get reading streak
     const today = new Date().toISOString().split('T')[0];
-    const reading = db.prepare('SELECT * FROM reading_log WHERE child_id = ? ORDER BY created_at DESC LIMIT 1').get(childId);
+    const reading = await db.prepare('SELECT * FROM reading_log WHERE child_id = ? ORDER BY created_at DESC LIMIT 1').get(childId);
     const readingStreak = reading?.streak_day || 0;
 
     // Get study sessions this week
     const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0];
-    const studySessions = db.prepare('SELECT COUNT(*) as count, SUM(actual_minutes) as total_minutes FROM study_sessions WHERE child_id = ? AND created_at >= ?').get(childId, weekAgo);
+    const studySessions = await db.prepare('SELECT COUNT(*) as count, SUM(actual_minutes) as total_minutes FROM study_sessions WHERE child_id = ? AND created_at >= ?').get(childId, weekAgo);
 
     res.json({
       subjects,
@@ -283,7 +283,7 @@ router.get('/', authenticate, (req, res) => {
 });
 
 // POST /api/academics/subject — Add a subject
-router.post('/subject', authenticate, (req, res) => {
+router.post('/subject', authenticate, async (req, res) => {
   try {
     if (req.user.role !== 'parent') return res.status(403).json({ error: 'Only parents can add subjects' });
 
@@ -291,13 +291,13 @@ router.post('/subject', authenticate, (req, res) => {
     if (!childId || !name) return res.status(400).json({ error: 'Child ID and name required' });
 
     // IDOR check
-    const child = db.prepare('SELECT family_id FROM children WHERE id = ?').get(childId);
+    const child = await db.prepare('SELECT family_id FROM children WHERE id = ?').get(childId);
     if (!child || child.family_id !== req.user.familyId) return res.status(403).json({ error: 'Access denied' });
 
     const id = uuidv4();
     const gradeNumeric = gradeToNumeric(grade);
 
-    db.prepare('INSERT INTO academic_subjects (id, child_id, name, current_grade, grade_numeric, icon) VALUES (?, ?, ?, ?, ?, ?)').run(
+    await db.prepare('INSERT INTO academic_subjects (id, child_id, name, current_grade, grade_numeric, icon) VALUES (?, ?, ?, ?, ?, ?)').run(
       id, childId, name, grade || null, gradeNumeric, icon || '📖'
     );
 
@@ -308,18 +308,18 @@ router.post('/subject', authenticate, (req, res) => {
 });
 
 // POST /api/academics/grade — Update a grade
-router.post('/grade', authenticate, (req, res) => {
+router.post('/grade', authenticate, async (req, res) => {
   try {
     if (req.user.role !== 'parent') return res.status(403).json({ error: 'Only parents can update grades' });
 
     const { subjectId, grade } = req.body;
     if (!subjectId || !grade) return res.status(400).json({ error: 'Subject ID and grade required' });
 
-    const subject = db.prepare('SELECT * FROM academic_subjects WHERE id = ?').get(subjectId);
+    const subject = await db.prepare('SELECT * FROM academic_subjects WHERE id = ?').get(subjectId);
     if (!subject) return res.status(404).json({ error: 'Subject not found' });
 
     // IDOR check
-    const child = db.prepare('SELECT family_id FROM children WHERE id = ?').get(subject.child_id);
+    const child = await db.prepare('SELECT family_id FROM children WHERE id = ?').get(subject.child_id);
     if (!child || child.family_id !== req.user.familyId) return res.status(403).json({ error: 'Access denied' });
 
     const gradeNumeric = gradeToNumeric(grade);
@@ -330,7 +330,7 @@ router.post('/grade', authenticate, (req, res) => {
       else if (gradeNumeric < oldGrade) trend = 'down';
     }
 
-    db.prepare('UPDATE academic_subjects SET current_grade = ?, grade_numeric = ?, trend = ?, updated_at = datetime("now") WHERE id = ?').run(
+    await db.prepare('UPDATE academic_subjects SET current_grade = ?, grade_numeric = ?, trend = ?, updated_at = NOW() WHERE id = ?').run(
       grade, gradeNumeric, trend, subjectId
     );
 
@@ -341,7 +341,7 @@ router.post('/grade', authenticate, (req, res) => {
 });
 
 // POST /api/academics/study — Log a study session
-router.post('/study', authenticate, (req, res) => {
+router.post('/study', authenticate, async (req, res) => {
   try {
     if (req.user.role !== 'child') return res.status(403).json({ error: 'Only children can log study sessions' });
 
@@ -355,24 +355,24 @@ router.post('/study', authenticate, (req, res) => {
     const money = Math.min(actualMinutes * 0.1, 3.00);
 
     // Credit rewards
-    const wallet = db.prepare('SELECT * FROM wallets WHERE child_id = ?').get(childId);
+    const wallet = await db.prepare('SELECT * FROM wallets WHERE child_id = ?').get(childId);
     if (wallet && money > 0) {
       const newBalance = (wallet.balance + money).toFixed(2);
-      db.prepare('UPDATE wallets SET balance = ?, total_earned = ?, updated_at = datetime("now") WHERE id = ?').run(
+      await db.prepare('UPDATE wallets SET balance = ?, total_earned = ?, updated_at = NOW() WHERE id = ?').run(
         parseFloat(newBalance), (wallet.total_earned + money).toFixed(2), wallet.id
       );
     }
 
     // Update child XP
-    const child = db.prepare('SELECT total_xp FROM children WHERE id = ?').get(childId);
+    const child = await db.prepare('SELECT total_xp FROM children WHERE id = ?').get(childId);
     if (child) {
-      db.prepare('UPDATE children SET total_xp = ?, updated_at = datetime("now") WHERE id = ?').run(
+      await db.prepare('UPDATE children SET total_xp = ?, updated_at = NOW() WHERE id = ?').run(
         child.total_xp + xp, childId
       );
     }
 
     const id = uuidv4();
-    db.prepare('INSERT INTO study_sessions (id, child_id, subject_id, planned_minutes, actual_minutes, completed, xp_earned, money_earned, started_at, ended_at) VALUES (?, ?, ?, ?, ?, 1, ?, ?, ?, ?)').run(
+    await db.prepare('INSERT INTO study_sessions (id, child_id, subject_id, planned_minutes, actual_minutes, completed, xp_earned, money_earned, started_at, ended_at) VALUES (?, ?, ?, ?, ?, 1, ?, ?, ?, ?)').run(
       id, childId, subjectId || null, plannedMinutes || actualMinutes, actualMinutes, xp, money,
       new Date(Date.now() - actualMinutes * 60000).toISOString(),
       new Date().toISOString()
@@ -385,7 +385,7 @@ router.post('/study', authenticate, (req, res) => {
 });
 
 // POST /api/academics/reading — Log reading
-router.post('/reading', authenticate, (req, res) => {
+router.post('/reading', authenticate, async (req, res) => {
   try {
     if (req.user.role !== 'child') return res.status(403).json({ error: 'Only children can log reading' });
 
@@ -396,7 +396,7 @@ router.post('/reading', authenticate, (req, res) => {
 
     // Calculate streak
     const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-    const lastReading = db.prepare('SELECT streak_day FROM reading_log WHERE child_id = ? ORDER BY created_at DESC LIMIT 1').get(childId);
+    const lastReading = await db.prepare('SELECT streak_day FROM reading_log WHERE child_id = ? ORDER BY created_at DESC LIMIT 1').get(childId);
     let streakDay = 1;
     if (lastReading) {
       const lastDate = new Date(lastReading.created_at).toISOString().split('T')[0];
@@ -407,16 +407,16 @@ router.post('/reading', authenticate, (req, res) => {
 
     // Reward: $0.50 per day of reading
     const money = 0.50;
-    const wallet = db.prepare('SELECT * FROM wallets WHERE child_id = ?').get(childId);
+    const wallet = await db.prepare('SELECT * FROM wallets WHERE child_id = ?').get(childId);
     if (wallet) {
       const newBalance = (wallet.balance + money).toFixed(2);
-      db.prepare('UPDATE wallets SET balance = ?, total_earned = ?, updated_at = datetime("now") WHERE id = ?').run(
+      await db.prepare('UPDATE wallets SET balance = ?, total_earned = ?, updated_at = NOW() WHERE id = ?').run(
         parseFloat(newBalance), (wallet.total_earned + money).toFixed(2), wallet.id
       );
     }
 
     const id = uuidv4();
-    db.prepare('INSERT INTO reading_log (id, child_id, book_title, minutes_read, pages_read, streak_day) VALUES (?, ?, ?, ?, ?, ?)').run(
+    await db.prepare('INSERT INTO reading_log (id, child_id, book_title, minutes_read, pages_read, streak_day) VALUES (?, ?, ?, ?, ?, ?)').run(
       id, childId, bookTitle || null, minutesRead, pagesRead || null, streakDay
     );
 

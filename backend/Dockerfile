@@ -1,47 +1,38 @@
 # ============================================
 # FamilyOS Backend — Dockerfile
 # ============================================
-# This file tells Docker how to build your backend app.
-# Think of it as a recipe: "Here's what I need, here's how to cook it."
 
-# STEP 1: Start from a base image.
-# node:20-alpine = Node.js version 20, lightweight (alpine = small Linux).
-# "alpine" means ~50MB instead of ~300MB. Faster to download, cheaper to run.
-FROM node:20-alpine
+# STEP 1: Use Node.js 20 on Debian (not Alpine) for native module support
+FROM node:20-slim
 
-# STEP 2: Set the working directory inside the container.
-# All future commands run from /app. Like doing "cd /app"
+# STEP 2: Install build tools needed for native modules (better-sqlite3)
+RUN apt-get update && apt-get install -y \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+# STEP 3: Set working directory
 WORKDIR /app
 
-# STEP 3: Copy package.json and package-lock.json FIRST.
-# Why first? Docker caches layers. If you change code but not dependencies,
-# Docker skips "npm install" and uses the cached version. Saves time.
+# STEP 4: Copy package files first (for Docker layer caching)
 COPY package*.json ./
 
-# STEP 4: Install dependencies.
-# --omit=dev = don't install devDependencies (like nodemon) in production.
-# Keeps the image smaller and more secure.
+# STEP 5: Install dependencies
 RUN npm install --omit=dev
 
-# STEP 5: Copy the rest of your source code.
-# This happens AFTER npm install so code changes don't trigger a reinstall.
+# STEP 6: Copy source code
 COPY . .
 
-# STEP 6: Expose port 3001.
-# This tells Docker "this app listens on port 3001".
-# It's documentation — doesn't actually open the port.
+# STEP 7: Expose port
 EXPOSE 3001
 
-# STEP 7: Define environment variables with defaults.
-# These can be overridden at runtime via docker-compose.yml or "docker run -e"
+# STEP 8: Environment defaults
 ENV NODE_ENV=production
 ENV PORT=3001
 
-# STEP 8: Create a volume mount point for the SQLite database.
-# Volumes persist data even when the container is destroyed.
-# Without this, your database would disappear every time you restart.
+# STEP 9: Volume for SQLite fallback
 VOLUME ["/app/data"]
 
-# STEP 9: The command to run when the container starts.
-# Like typing "node src/server.js" in your terminal.
+# STEP 10: Start the app
 CMD ["node", "src/server.js"]

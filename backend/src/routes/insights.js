@@ -5,7 +5,7 @@ const { authenticate } = require('../middleware/auth');
 const router = express.Router();
 
 // GET /api/insights — Get AI-powered family insights
-router.get('/', authenticate, (req, res) => {
+router.get('/', authenticate, async (req, res) => {
   try {
     if (req.user.role !== 'parent') return res.status(403).json({ error: 'Only parents can view insights' });
 
@@ -14,20 +14,20 @@ router.get('/', authenticate, (req, res) => {
     const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0];
     const monthAgo = new Date(Date.now() - 30 * 86400000).toISOString().split('T')[0];
 
-    const children = db.prepare('SELECT id, name, age FROM children WHERE family_id = ? ORDER BY age').all(familyId);
+    const children = await db.prepare('SELECT id, name, age FROM children WHERE family_id = ? ORDER BY age').all(familyId);
     const insights = [];
 
     for (const child of children) {
       // Task completion trends
-      const thisWeek = db.prepare(`
+      const thisWeek = await db.prepare(`
         SELECT COUNT(*) as total, SUM(CASE WHEN status = 'approved' THEN 1 ELSE 0 END) as completed
         FROM chore_assignments WHERE child_id = ? AND assigned_date >= ?
       `).get(child.id, weekAgo);
 
-      const lastWeek = db.prepare(`
+      const lastWeek = await db.prepare(`
         SELECT COUNT(*) as total, SUM(CASE WHEN status = 'approved' THEN 1 ELSE 0 END) as completed
         FROM chore_assignments WHERE child_id = ?
-        AND assigned_date >= datetime(?, '-7 days') AND assigned_date < ?
+        AND assigned_date >= ?::date - INTERVAL '7 days' AND assigned_date < ?
       `).get(child.id, weekAgo, weekAgo);
 
       const thisWeekRate = thisWeek.total > 0 ? (thisWeek.completed / thisWeek.total * 100) : 0;
@@ -51,7 +51,7 @@ router.get('/', authenticate, (req, res) => {
       }
 
       // Mood trends
-      const moods = db.prepare(`
+      const moods = await db.prepare(`
         SELECT mood FROM mood_checkins WHERE child_id = ? AND created_at >= ? ORDER BY created_at DESC LIMIT 7
       `).all(child.id, weekAgo);
 
@@ -70,7 +70,7 @@ router.get('/', authenticate, (req, res) => {
       }
 
       // Trust score changes
-      const trust = db.prepare('SELECT score FROM trust_scores WHERE child_id = ?').get(child.id);
+      const trust = await db.prepare('SELECT score FROM trust_scores WHERE child_id = ?').get(child.id);
       if (trust) {
         if (trust.score < 40) {
           insights.push({
@@ -91,7 +91,7 @@ router.get('/', authenticate, (req, res) => {
       }
 
       // Academic trends
-      const subjects = db.prepare('SELECT name, current_grade, trend FROM academic_subjects WHERE child_id = ?').all(child.id);
+      const subjects = await db.prepare('SELECT name, current_grade, trend FROM academic_subjects WHERE child_id = ?').all(child.id);
       for (const subject of subjects) {
         if (subject.trend === 'down') {
           insights.push({
@@ -105,7 +105,7 @@ router.get('/', authenticate, (req, res) => {
       }
 
       // Reading streak
-      const reading = db.prepare('SELECT streak_day FROM reading_log WHERE child_id = ? ORDER BY created_at DESC LIMIT 1').get(child.id);
+      const reading = await db.prepare('SELECT streak_day FROM reading_log WHERE child_id = ? ORDER BY created_at DESC LIMIT 1').get(child.id);
       if (reading && reading.streak_day >= 7) {
         insights.push({
           type: 'positive',
@@ -116,10 +116,10 @@ router.get('/', authenticate, (req, res) => {
       }
 
       // Screen time vs study time ratio
-      const screenTime = db.prepare(`
+      const screenTime = await db.prepare(`
         SELECT SUM(minutes) as total FROM screen_time_purchases WHERE child_id = ? AND created_at >= ?
       `).get(child.id, weekAgo);
-      const studyTime = db.prepare(`
+      const studyTime = await db.prepare(`
         SELECT SUM(actual_minutes) as total FROM study_sessions WHERE child_id = ? AND created_at >= ?
       `).get(child.id, weekAgo);
 
@@ -136,11 +136,11 @@ router.get('/', authenticate, (req, res) => {
     }
 
     // Family-wide insights
-    const totalEarnings = db.prepare(`
+    const totalEarnings = await db.prepare(`
       SELECT SUM(balance) as total FROM wallets w JOIN children c ON w.child_id = c.id WHERE c.family_id = ?
     `).get(familyId);
 
-    const totalTax = db.prepare(`
+    const totalTax = await db.prepare(`
       SELECT SUM(amount) as total FROM financial_transactions ft
       JOIN children c ON ft.child_id = c.id
       WHERE c.family_id = ? AND ft.type = 'tax'

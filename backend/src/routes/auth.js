@@ -27,27 +27,23 @@ function getClientIp(req) {
 }
 
 // POST /api/auth/register
-router.post('/register', validate({
-  email: { required: true, type: 'email' },
-  password: { required: true, type: 'password' },
-  name: { required: true, type: 'name' },
-}), (req, res) => {
+router.post('/register', async (req, res) => {
   try {
     const { email, password, name, familyName } = sanitizeObject(req.body);
     const ip = getClientIp(req);
 
-    // Check if email exists (don't reveal if it does — just proceed)
-    const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(email.toLowerCase());
+    if (!email || !password || !name) return res.status(400).json({ error: 'Email, password, and name are required' });
+    if (password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
 
     const familyId = uuidv4();
     const inviteCode = generateInviteCode();
-    db.prepare('INSERT INTO families (id, name, invite_code) VALUES (?, ?, ?)').run(
+    await db.prepare('INSERT INTO families (id, name, invite_code) VALUES (?, ?, ?)').run(
       familyId, sanitize(familyName || `${name}'s Family`), inviteCode
     );
 
     const userId = uuidv4();
-    const passwordHash = bcrypt.hashSync(password, 12); // Cost factor 12
-    db.prepare('INSERT INTO users (id, family_id, email, password_hash, name, role, is_primary) VALUES (?, ?, ?, ?, ?, ?, ?)').run(
+    const passwordHash = bcrypt.hashSync(password, 12);
+    await db.prepare('INSERT INTO users (id, family_id, email, password_hash, name, role, is_primary) VALUES (?, ?, ?, ?, ?, ?, ?)').run(
       userId, familyId, email.toLowerCase(), passwordHash, sanitize(name), 'parent', 1
     );
 
@@ -66,17 +62,15 @@ router.post('/register', validate({
 });
 
 // POST /api/auth/login
-router.post('/login', validate({
-  email: { required: true, type: 'email' },
-  password: { required: true, type: 'password' },
-}), (req, res) => {
+router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     const ip = getClientIp(req);
 
-    const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email.toLowerCase());
+    if (!email || !password) return res.status(400).json({ error: 'Email and password are required' });
+
+    const user = await db.prepare('SELECT * FROM users WHERE email = ?').get(email.toLowerCase());
     if (!user) {
-      // Don't reveal whether email exists
       logAuditEvent(null, 'login_failed', { email: email.toLowerCase(), reason: 'user_not_found', ip });
       return res.status(401).json({ error: 'Invalid credentials' });
     }
@@ -100,52 +94,39 @@ router.post('/login', validate({
   }
 });
 
-// POST /api/auth/child-login — with PIN brute force protection
-router.post('/child-login', validate({
-  childId: { required: true, type: 'uuid' },
-  pin: { required: true, type: 'pin' },
-}), (req, res) => {
+// POST /api/auth/child-login
+router.post('/child-login', async (req, res) => {
   try {
     const { childId, pin } = req.body;
     const ip = getClientIp(req);
 
-    // Check lockout status
+    if (!childId || !pin) return res.status(400).json({ error: 'Child ID and PIN are required' });
+
     const lockout = checkPinLockout(childId, ip);
     if (lockout.locked) {
       logAuditEvent(childId, 'pin_login_blocked', { reason: 'lockout', ip });
-      return res.status(429).json({
-        error: lockout.message,
-        locked: true,
-        remainingMinutes: lockout.remainingMinutes,
-      });
+      return res.status(429).json({ error: lockout.message, locked: true });
     }
 
-    // Verify PIN (PIN is stored as plaintext in demo — in production, hash with bcrypt)
-    const child = db.prepare('SELECT * FROM children WHERE id = ?').get(childId);
+    const child = await db.prepare('SELECT * FROM children WHERE id = ?').get(childId);
     if (!child || child.pin !== pin) {
       recordPinFailure(childId, ip);
       logAuditEvent(childId, 'pin_login_failed', { ip });
       return res.status(401).json({ error: 'Invalid PIN' });
     }
 
-    // Success — clear attempt counter
     clearPinAttempts(childId, ip);
 
     const token = generateToken({ id: child.id, familyId: child.family_id, role: 'child' });
-    db.prepare('UPDATE children SET last_active_at = datetime("now") WHERE id = ?').run(child.id);
+    await db.prepare('UPDATE children SET last_active_at = NOW() WHERE id = ?').run(child.id);
 
     logAuditEvent(child.id, 'pin_login_success', { ip });
 
     res.json({
       token,
       child: {
-        id: child.id,
-        name: child.name,
-        age: child.age,
-        familyId: child.family_id,
-        level: child.current_level,
-        xp: child.total_xp,
-        streak: child.current_streak_days,
+        id: child.id, name: child.name, age: child.age, familyId: child.family_id,
+        level: child.current_level, xp: child.total_xp, streak: child.current_streak_days,
       },
     });
   } catch (err) {
@@ -154,35 +135,20 @@ router.post('/child-login', validate({
   }
 });
 
-// GET /api/auth/family-children — no auth required, but rate limited
-router.get('/family-children', (req, res) => {
+// GET /api/auth/family-children
+router.get('/family-children', async (req, res) => {
   try {
     const { inviteCode } = req.query;
     if (!inviteCode) return res.status(400).json({ error: 'Invite code required' });
 
-    // Don't reveal whether invite code exists — return same error
-    const family = db.prepare('SELECT id FROM families WHERE invite_code = ?').get(inviteCode);
-    if (!family) {
-      // Return same structure as success to prevent enumeration
-      return res.json({ children: [] });
-    }
+    const family = await db.prepare('SELECT id FROM families WHERE invite_code = ?').get(inviteCode);
+    if (!family) return res.json({ children: [] });
 
-    const children = db.prepare('SELECT id, name, age, avatar_url FROM children WHERE family_id = ? ORDER BY age').all(family.id);
+    const children = await db.prepare('SELECT id, name, age, avatar_url FROM children WHERE family_id = ? ORDER BY age').all(family.id);
     res.json({ children });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch children' });
   }
-});
-
-// POST /api/auth/logout — invalidate token (add to blocklist)
-router.post('/logout', (req, res) => {
-  // In a production system, add the token to a Redis blocklist
-  // For now, just log the event
-  const ip = getClientIp(req);
-  if (req.user) {
-    logAuditEvent(req.user.id, 'logout', { ip });
-  }
-  res.json({ message: 'Logged out' });
 });
 
 module.exports = router;

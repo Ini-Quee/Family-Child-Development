@@ -15,8 +15,6 @@
 # - "backend" connects to "redis" using hostname "redis"
 # - Data persists in named volumes even when containers are destroyed
 
-version: '3.8'
-
 services:
   # ============================================
   # SERVICE 1: PostgreSQL Database
@@ -38,7 +36,7 @@ services:
       - ./backend/src/db/init.sql:/docker-entrypoint-initdb.d/init.sql  # Auto-run on first start
     
     ports:
-      - "5432:5432"  # Expose to host (optional — for tools like pgAdmin)
+      - "5434:5432"  # Changed from 5432 — that port is taken by plos
     
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U familyos"]
@@ -63,7 +61,7 @@ services:
       - redis_data:/data
     
     ports:
-      - "6379:6379"  # Optional: expose for debugging tools
+      - "6381:6379"  # Changed from 6379 — that port is taken by plos
     
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -91,7 +89,7 @@ services:
       JWT_SECRET: ${JWT_SECRET:-change-this-to-a-real-secret-in-production}
     
     ports:
-      - "3001:3001"  # Expose API to the outside world
+      - "3002:3001"  # Changed from 3001 — might be in use locally
     
     volumes:
       - ./backend/data:/app/data  # SQLite fallback (dev mode)
