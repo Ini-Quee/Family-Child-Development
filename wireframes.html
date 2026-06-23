@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FamilyOS — Wireframe Screens</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #1a1a2e; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #fff; }
+
+  .header { background: #16213e; padding: 20px 32px; border-bottom: 2px solid #4F46E5; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .header h1 { font-size: 24px; color: #818CF8; }
+  .header span { font-size: 13px; color: #6B7280; }
+
+  .nav { background: #0f3460; padding: 12px 32px; display: flex; gap: 8px; flex-wrap: wrap; position: sticky; top: 68px; z-index: 99; }
+  .nav button { background: #1a1a2e; color: #9CA3AF; border: 1px solid #2E2E2E; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s; }
+  .nav button:hover, .nav button.active { background: #4F46E5; color: #fff; border-color: #4F46E5; }
+
+  .container { display: flex; justify-content: center; padding: 32px; gap: 32px; flex-wrap: wrap; }
+
+  .phone { width: 375px; min-height: 812px; background: #111827; border-radius: 40px; border: 3px solid #374151; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.5); position: relative; }
+  .phone-notch { width: 150px; height: 30px; background: #000; border-radius: 0 0 20px 20px; margin: 0 auto; position: relative; z-index: 10; }
+  .phone-screen { padding: 0; min-height: 750px; overflow-y: auto; }
+  .phone-screen::-webkit-scrollbar { width: 0; }
+
+  /* Status bar */
+  .status-bar { display: flex; justify-content: space-between; align-items: center; padding: 8px 24px; font-size: 12px; color: #9CA3AF; font-weight: 600; }
+
+  /* App header */
+  .app-header { background: #4F46E5; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
+  .app-header h2 { font-size: 18px; font-weight: 700; }
+  .app-header .logout { font-size: 13px; color: rgba(255,255,255,0.7); cursor: pointer; }
+
+  /* Cards */
+  .card { background: #1F2937; margin: 12px 16px; border-radius: 14px; padding: 16px; }
+  .card-accent { background: linear-gradient(135deg, #4F46E5, #7C3AED); }
+  .card-green { background: #065F46; }
+  .card-amber { background: #78350F; }
+
+  /* Stats row */
+  .stats-row { display: flex; gap: 10px; padding: 0 16px; margin-top: 12px; }
+  .stat-card { flex: 1; background: #1F2937; border-radius: 12px; padding: 14px; text-align: center; }
+  .stat-value { font-size: 22px; font-weight: 800; }
+  .stat-label { font-size: 11px; color: #9CA3AF; margin-top: 4px; }
+
+  /* Section title */
+  .section-title { font-size: 16px; font-weight: 700; padding: 16px 20px 8px; color: #F3F4F6; }
+
+  /* Task row */
+  .task-row { display: flex; align-items: center; background: #1F2937; margin: 6px 16px; border-radius: 12px; padding: 14px; }
+  .task-icon { font-size: 22px; margin-right: 12px; }
+  .task-info { flex: 1; }
+  .task-title { font-size: 15px; font-weight: 600; color: #F3F4F6; }
+  .task-meta { font-size: 12px; color: #9CA3AF; margin-top: 3px; }
+  .task-check { width: 36px; height: 36px; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; }
+  .check-green { background: #10B981; color: #fff; }
+  .check-pending { background: #374151; color: #9CA3AF; }
+  .check-done { background: #065F46; color: #34D399; }
+  .check-waiting { background: #78350F; color: #FBBF24; }
+
+  /* Level card */
+  .level-card { background: linear-gradient(135deg, #4F46E5, #7C3AED); margin: 12px 16px; border-radius: 14px; padding: 20px; }
+  .level-row { display: flex; align-items: center; gap: 12px; }
+  .level-emoji { font-size: 36px; }
+  .level-title { font-size: 18px; font-weight: 700; }
+  .level-sub { font-size: 13px; color: rgba(255,255,255,0.7); margin-top: 2px; }
+  .progress-bar { height: 8px; background: rgba(255,255,255,0.2); border-radius: 4px; margin-top: 14px; }
+  .progress-fill { height: 8px; background: #fff; border-radius: 4px; }
+  .streak-row { display: flex; justify-content: space-between; margin-top: 12px; font-size: 13px; color: rgba(255,255,255,0.8); font-weight: 600; }
+
+  /* Progress bar large */
+  .progress-large { height: 12px; background: #374151; border-radius: 6px; margin-top: 10px; }
+  .progress-large-fill { height: 12px; background: #10B981; border-radius: 6px; }
+
+  /* Child card */
+  .child-card { background: #1F2937; margin: 10px 16px; border-radius: 14px; padding: 16px; }
+  .child-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .child-avatar { font-size: 32px; }
+  .child-name { font-size: 17px; font-weight: 700; }
+  .child-level { font-size: 12px; color: #9CA3AF; margin-top: 2px; }
+  .child-stats { display: flex; justify-content: space-around; border-top: 1px solid #374151; padding-top: 12px; }
+  .child-stat { text-align: center; }
+  .child-stat-val { font-size: 16px; font-weight: 700; }
+  .child-stat-lbl { font-size: 10px; color: #6B7280; margin-top: 2px; }
+
+  /* Approval row */
+  .approval-row { display: flex; align-items: center; background: #1F2937; margin: 6px 16px; border-radius: 12px; padding: 14px; }
+  .approval-info { flex: 1; }
+  .approval-child { font-size: 12px; font-weight: 600; color: #818CF8; }
+  .approval-task { font-size: 15px; font-weight: 600; margin-top: 2px; }
+  .approval-time { font-size: 11px; color: #6B7280; margin-top: 2px; }
+  .approval-btns { display: flex; gap: 8px; }
+  .btn-approve { width: 36px; height: 36px; border-radius: 18px; background: #10B981; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; }
+  .btn-reject { width: 36px; height: 36px; border-radius: 18px; background: #F87171; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; }
+
+  /* Balance card */
+  .balance-card { background: linear-gradient(135deg, #4F46E5, #7C3AED); margin: 16px; border-radius: 14px; padding: 24px; text-align: center; }
+  .balance-label { font-size: 13px; color: rgba(255,255,255,0.6); }
+  .balance-value { font-size: 44px; font-weight: 800; margin-top: 4px; }
+  .balance-row { display: flex; margin-top: 18px; }
+  .balance-item { flex: 1; text-align: center; }
+  .balance-divider { width: 1px; background: rgba(255,255,255,0.2); }
+  .balance-item-label { font-size: 11px; color: rgba(255,255,255,0.5); }
+  .balance-item-val { font-size: 15px; font-weight: 700; margin-top: 4px; }
+
+  /* Transaction row */
+  .tx-row { display: flex; align-items: center; background: #1F2937; margin: 4px 16px; border-radius: 10px; padding: 12px 14px; }
+  .tx-icon { font-size: 20px; margin-right: 12px; }
+  .tx-info { flex: 1; }
+  .tx-desc { font-size: 13px; font-weight: 600; }
+  .tx-time { font-size: 11px; color: #6B7280; margin-top: 2px; }
+  .tx-amount { font-size: 15px; font-weight: 700; }
+  .tx-pos { color: #10B981; }
+  .tx-neg { color: #EF4444; }
+
+  /* Badge row */
+  .badge-row { display: flex; align-items: center; background: #1F2937; margin: 6px 16px; border-radius: 12px; padding: 14px; }
+  .badge-row.locked { opacity: 0.4; }
+  .badge-icon { font-size: 28px; margin-right: 14px; }
+  .badge-info { flex: 1; }
+  .badge-name { font-size: 14px; font-weight: 700; }
+  .badge-desc { font-size: 11px; color: #9CA3AF; margin-top: 2px; }
+  .badge-check { font-size: 18px; }
+
+  /* Keypad */
+  .keypad { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; padding: 0 40px; margin-top: 24px; }
+  .key-btn { width: 68px; height: 68px; border-radius: 34px; background: #1F2937; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 600; cursor: pointer; border: 1px solid #374151; }
+  .key-btn.empty { background: transparent; border: none; }
+
+  /* Pin dots */
+  .pin-dots { display: flex; justify-content: center; gap: 16px; margin: 24px 0; }
+  .pin-dot { width: 18px; height: 18px; border-radius: 9px; border: 2px solid #4F46E5; }
+  .pin-dot.filled { background: #4F46E5; }
+
+  /* Child select grid */
+  .child-grid { display: flex; justify-content: center; gap: 16px; padding: 20px; flex-wrap: wrap; }
+  .child-select-card { background: #1F2937; border-radius: 16px; padding: 24px; text-align: center; width: 130px; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; }
+  .child-select-card:hover { border-color: #4F46E5; }
+  .child-select-avatar { font-size: 48px; }
+  .child-select-name { font-size: 17px; font-weight: 700; margin-top: 8px; }
+  .child-select-age { font-size: 13px; color: #9CA3AF; margin-top: 4px; }
+
+  /* Tab bar */
+  .tab-bar { display: flex; background: #0f172a; border-top: 1px solid #1F2937; padding: 8px 0 12px; position: absolute; bottom: 0; left: 0; right: 0; }
+  .tab-item { flex: 1; text-align: center; font-size: 10px; color: #6B7280; cursor: pointer; }
+  .tab-item.active { color: #818CF8; }
+  .tab-icon { font-size: 20px; margin-bottom: 2px; }
+
+  /* Form */
+  .form-group { padding: 0 16px; margin-top: 14px; }
+  .form-label { font-size: 12px; font-weight: 600; color: #9CA3AF; margin-bottom: 6px; }
+  .form-input { background: #1F2937; border: 1px solid #374151; border-radius: 10px; padding: 12px 14px; color: #F3F4F6; font-size: 14px; width: 100%; }
+
+  /* Chips */
+  .chip-row { display: flex; gap: 8px; flex-wrap: wrap; padding: 0 16px; margin-top: 8px; }
+  .chip { padding: 6px 14px; border-radius: 20px; background: #1F2937; border: 1px solid #374151; font-size: 12px; color: #9CA3AF; }
+  .chip.active { background: #4F46E5; border-color: #4F46E5; color: #fff; }
+
+  /* Buttons */
+  .btn-primary { background: #4F46E5; color: #fff; border: none; border-radius: 12px; padding: 14px; font-size: 15px; font-weight: 700; width: calc(100% - 32px); margin: 20px 16px; cursor: pointer; text-align: center; }
+  .btn-secondary { background: #10B981; color: #fff; border: none; border-radius: 12px; padding: 12px; font-size: 14px; font-weight: 700; margin: 12px 16px; cursor: pointer; text-align: center; }
+
+  /* Empty state */
+  .empty-state { text-align: center; padding: 40px 20px; }
+  .empty-emoji { font-size: 48px; }
+  .empty-text { font-size: 15px; color: #9CA3AF; margin-top: 12px; }
+
+  /* Greeting */
+  .greeting { padding: 16px 20px 0; }
+  .greeting h2 { font-size: 22px; font-weight: 800; }
+  .greeting p { font-size: 13px; color: #9CA3AF; margin-top: 4px; }
+
+  /* Goal card */
+  .goal-card { background: #1F2937; margin: 12px 16px; border-radius: 14px; padding: 16px; }
+  .goal-title { font-size: 15px; font-weight: 700; }
+  .goal-bar { height: 10px; background: #374151; border-radius: 5px; margin-top: 10px; }
+  .goal-fill { height: 10px; background: #10B981; border-radius: 5px; }
+  .goal-progress { font-size: 12px; color: #9CA3AF; margin-top: 6px; text-align: right; }
+
+  /* Switch row */
+  .switch-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #1F2937; }
+  .switch-label { font-size: 14px; color: #F3F4F6; }
+  .switch { width: 44px; height: 24px; background: #374151; border-radius: 12px; position: relative; }
+  .switch.on { background: #4F46E5; }
+  .switch-knob { width: 20px; height: 20px; background: #fff; border-radius: 10px; position: absolute; top: 2px; left: 2px; }
+  .switch.on .switch-knob { left: 22px; }
+
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  .label-row { display: flex; gap: 8px; padding: 0 16px; margin-top: 12px; }
+  .label-btn { flex: 1; padding: 10px; border-radius: 10px; background: #1F2937; border: 1px solid #374151; text-align: center; font-size: 12px; color: #9CA3AF; cursor: pointer; }
+  .label-btn.active { background: #4F46E5; border-color: #4F46E5; color: #fff; }
+
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+  .badge-easy { background: #065F46; color: #34D399; }
+  .badge-medium { background: #78350F; color: #FBBF24; }
+  .badge-hard { background: #7F1D1D; color: #F87171; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>👨‍👩‍👧‍👦 FamilyOS Wireframes</h1>
+    <span>10 screens · MVP · Tap a screen below to view</span>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="active" onclick="showScreen('login')">Login</button>
+  <button onclick="showScreen('register')">Register</button>
+  <button onclick="showScreen('child-select')">Child Select</button>
+  <button onclick="showScreen('child-pin')">Child PIN</button>
+  <button onclick="showScreen('parent-dashboard')">Parent Dashboard</button>
+  <button onclick="showScreen('child-home')">Child Home</button>
+  <button onclick="showScreen('add-chore')">Add Chore</button>
+  <button onclick="showScreen('approvals')">Approvals</button>
+  <button onclick="showScreen('wallet')">Wallet</button>
+  <button onclick="showScreen('badges')">Badges</button>
+</div>
+
+<div class="container">
+
+  <!-- LOGIN SCREEN -->
+  <div class="phone screen active" id="screen-login">
+    <div class="phone-notch"></div>
+    <div class="phone-screen" style="background: #F9FAFB;">
+      <div style="padding: 60px 24px 24px; text-align: center;">
+        <div style="font-size: 56px;">👨‍👩‍👧‍👦</div>
+        <div style="font-size: 32px; font-weight: 800; color: #4F46E5; margin-top: 8px;">FamilyOS</div>
+        <div style="font-size: 14px; color: #6B7280; margin-top: 4px;">The Family Operating System</div>
+      </div>
+      <div style="background: #fff; margin: 0 20px; border-radius: 16px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
+        <div style="font-size: 20px; font-weight: 700; color: #111827; text-align: center; margin-bottom: 20px;">Parent Login</div>
+        <div style="margin-bottom: 14px;">
+          <div style="font-size: 12px; font-weight: 600; color: #6B7280; margin-bottom: 6px;">Email</div>
+          <div style="background: #F3F4F6; border: 1px solid #E5E7EB; border-radius: 10px; padding: 12px 14px; font-size: 14px; color: #111827;">sarah@demo.com</div>
+        </div>
+        <div style="margin-bottom: 14px;">
+          <div style="font-size: 12px; font-weight: 600; color: #6B7280; margin-bottom: 6px;">Password</div>
+          <div style="background: #F3F4F6; border: 1px solid #E5E7EB; border-radius: 10px; padding: 12px 14px; font-size: 14px; color: #111827;">•••••••••</div>
+        </div>
+        <div style="background: #4F46E5; border-radius: 12px; padding: 14px; text-align: center; color: #fff; font-weight: 700; font-size: 15px; margin-top: 18px;">Login</div>
+        <div style="text-align: center; margin-top: 14px; font-size: 13px; color: #6B7280;">Don't have an account? <span style="color: #4F46E5; font-weight: 600;">Register</span></div>
+        <div style="text-align: center; margin-top: 12px; font-size: 13px; color: #6B7280;">👶 <span style="color: #4F46E5; font-weight: 600;">I'm a kid — Login with PIN</span></div>
+      </div>
+      <div style="text-align: center; margin-top: 16px; font-size: 11px; color: #9CA3AF;">Demo: sarah@demo.com / password123</div>
+    </div>
+  </div>
+
+  <!-- REGISTER SCREEN -->
+  <div class="phone screen" id="screen-register">
+    <div class="phone-notch"></div>
+    <div class="phone-screen" style="background: #F9FAFB;">
+      <div style="padding: 50px 24px 16px; text-align: center;">
+        <div style="font-size: 26px; font-weight: 800; color: #111827;">Create Account</div>
+        <div style="font-size: 14px; color: #6B7280; margin-top: 6px;">Set up your family in 2 minutes</div>
+      </div>
+      <div style="background: #fff; margin: 0 20px; border-radius: 16px; padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
+        <div style="margin-bottom: 12px;">
+          <div style="font-size: 12px; font-weight: 600; color: #6B7280; margin-bottom: 4px;">Your Name *</div>
+          <div style="background: #F3F4F6; border: 1px solid #E5E7EB; border-radius: 10px; padding: 11px 14px; font-size: 14px; color: #111827;">Sarah</div>
+        </div>
+        <div style="margin-bottom: 12px;">
+          <div style="font-size: 12px; font-weight: 600; color: #6B7280; margin-bottom: 4px;">Email *</div>
+          <div style="background: #F3F4F6; border: 1px solid #E5E7EB; border-radius: 10px; padding: 11px 14px; font-size: 14px; color: #111827;">sarah@email.com</div>
+        </div>
+        <div style="margin-bottom: 12px;">
+          <div style="font-size: 12px; font-weight: 600; color: #6B7280; margin-bottom: 4px;">Password *</div>
+          <div style="background: #F3F4F6; border: 1px solid #E5E7EB; border-radius: 10px; padding: 11px 14px; font-size: 14px; color: #111827;">••••••••</div>
+        </div>
+        <div style="margin-bottom: 12px;">
+          <div style="font-size: 12px; font-weight: 600; color: #6B7280; margin-bottom: 4px;">Family Name</div>
+          <div style="background: #F3F4F6; border: 1px solid #E5E7EB; border-radius: 10px; padding: 11px 14px; font-size: 14px; color: #111827;">The Johnson Family</div>
+        </div>
+        <div style="background: #4F46E5; border-radius: 12px; padding: 14px; text-align: center; color: #fff; font-weight: 700; font-size: 15px; margin-top: 16px;">Create Family</div>
+        <div style="text-align: center; margin-top: 14px; font-size: 13px; color: #6B7280;">Already have an account? <span style="color: #4F46E5; font-weight: 600;">Login</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHILD SELECT SCREEN -->
+  <div class="phone screen" id="screen-child-select">
+    <div class="phone-notch"></div>
+    <div class="phone-screen" style="background: #111827;">
+      <div style="padding: 80px 24px 16px; text-align: center;">
+        <div style="font-size: 26px; font-weight: 800;">Who are you?</div>
+        <div style="font-size: 14px; color: #9CA3AF; margin-top: 6px;">Tap your name to login</div>
+      </div>
+      <div class="child-grid">
+        <div class="child-select-card">
+          <div class="child-select-avatar">👧</div>
+          <div class="child-select-name">Emma</div>
+          <div class="child-select-age">Age 10</div>
+        </div>
+        <div class="child-select-card">
+          <div class="child-select-avatar">🧒</div>
+          <div class="child-select-name">Jake</div>
+          <div class="child-select-age">Age 13</div>
+        </div>
+        <div class="child-select-card">
+          <div class="child-select-avatar">👤</div>
+          <div class="child-select-name">Alex</div>
+          <div class="child-select-age">Age 16</div>
+        </div>
+      </div>
+      <div style="text-align: center; margin-top: 24px; font-size: 13px; color: #4F46E5; font-weight: 600;">← Back to Parent Login</div>
+    </div>
+  </div>
+
+  <!-- CHILD PIN SCREEN -->
+  <div class="phone screen" id="screen-child-pin">
+    <div class="phone-notch"></div>
+    <div class="phone-screen" style="background: #111827;">
+      <div style="padding: 60px 24px 0; text-align: center;">
+        <div style="font-size: 13px; color: #4F46E5; font-weight: 600; margin-bottom: 16px;">← Choose different person</div>
+        <div style="font-size: 26px; font-weight: 800;">Hi, Emma!</div>
+        <div style="font-size: 14px; color: #9CA3AF; margin-top: 6px;">Enter your 4-digit PIN</div>
+      </div>
+      <div class="pin-dots">
+        <div class="pin-dot filled"></div>
+        <div class="pin-dot filled"></div>
+        <div class="pin-dot"></div>
+        <div class="pin-dot"></div>
+      </div>
+      <div class="keypad">
+        <div class="key-btn">1</div>
+        <div class="key-btn">2</div>
+        <div class="key-btn">3</div>
+        <div class="key-btn">4</div>
+        <div class="key-btn">5</div>
+        <div class="key-btn">6</div>
+        <div class="key-btn">7</div>
+        <div class="key-btn">8</div>
+        <div class="key-btn">9</div>
+        <div class="key-btn empty"></div>
+        <div class="key-btn">0</div>
+        <div class="key-btn">⌫</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PARENT DASHBOARD -->
+  <div class="phone screen" id="screen-parent-dashboard">
+    <div class="phone-notch"></div>
+    <div class="phone-screen" style="background: #111827;">
+      <div class="app-header">
+        <h2>FamilyOS</h2>
+        <span class="logout">Logout</span>
+      </div>
+      <div class="greeting">
+        <h2>Hi, Sarah 👋</h2>
+        <p>Monday, June 23</p>
+      </div>
+      <div class="stats-row">
+        <div class="stat-card" style="background: #1E1B4B;">
+          <div class="stat-value" style="color: #818CF8;">65%</div>
+          <div class="stat-label">Done Today</div>
+        </div>
+        <div class="stat-card" style="background: #78350F;">
+          <div class="stat-value" style="color: #FBBF24;">3</div>
+          <div class="stat-label">Pending</div>
+        </div>
+        <div class="stat-card" style="background: #065F46;">
+          <div class="stat-value" style="color: #34D399;">8</div>
+          <div class="stat-label">Approved</div>
+        </div>
+      </div>
+
+      <div class="section-title">Children</div>
+
+      <div class="child-card">
+        <div class="child-header">
+          <div class="child-avatar">👧</div>
+          <div style="flex:1">
+            <div class="child-name">Emma</div>
+            <div class="child-level">Level 5 · 600 XP · 🔥 8 day streak</div>
+          </div>
+        </div>
+        <div class="child-stats">
+          <div class="child-stat"><div class="child-stat-val">5</div><div class="child-stat-lbl">Tasks</div></div>
+          <div class="child-stat"><div class="child-stat-val" style="color:#10B981;">3</div><div class="child-stat-lbl">Done</div></div>
+          <div class="child-stat"><div class="child-stat-val" style="color:#F59E0B;">2</div><div class="child-stat-lbl">Remaining</div></div>
+          <div class="child-stat"><div class="child-stat-val" style="color:#818CF8;">$12.50</div><div class="child-stat-lbl">Earned</div></div>
+        </div>
+      </div>
+
+      <div class="child-card">
+        <div class="child-header">
+          <div class="child-avatar">🧒</div>
+          <div style="flex:1">
+            <div class="child-name">Jake</div>
+            <div class="child-level">Level 3 · 250 XP · 🔥 3 day streak</div>
+          </div>
+        </div>
+        <div class="child-stats">
+          <div class="child-stat"><div class="child-stat-val">4</div><div class="child-stat-lbl">Tasks</div></div>
+          <div class="child-stat"><div class="child-stat-val" style="color:#10B981;">1</div><div class="child-stat-lbl">Done</div></div>
+          <div class="child-stat"><div class="child-stat-val" style="color:#F59E0B;">3</div><div class="child-stat-lbl">Remaining</div></div>
+          <div class="child-stat"><div class="child-stat-val" style="color:#818CF8;">$8.00</div><div class="child-stat-lbl">Earned</div></div>
+        </div>
+      </div>
+
+      <div class="child-card">
+        <div class="child-header">
+          <div class="child-avatar">👤</div>
+          <div style="flex:1">
+            <div class="child-name">Alex</div>
+            <div class="child-level">Level 8 · 1500 XP · 🔥 22 day streak</div>
+          </div>
+        </div>
+        <div class="child-stats">
+          <div class="child-stat"><div class="child-stat-val">3</div><div class="child-stat-lbl">Tasks</div></div>
+          <div class="child-stat"><div class="child-stat-val" style="color:#10B981;">2</div><div class="child-stat-lbl">Done</div></div>
+          <div class="child-stat"><div class="child-stat-val" style="color:#F59E0B;">1</div><div class="child-stat-lbl">Remaining</div></div>
+          <div class="child-stat"><div class="child-stat-val" style="color:#818CF8;">$45.00</div><div class="child-stat-lbl">Earned</div></div>
+        </div>
+      </div>
+
+      <div class="section-title">✅ Pending Approval</div>
+      <div class="approval-row">
+        <div class="approval-info">
+          <div class="approval-child">Emma</div>
+          <div class="approval-task">Clean Room</div>
+          <div class="approval-time">Completed 3:42 PM</div>
+        </div>
+        <div class="approval-btns">
+          <div class="btn-approve">✓</div>
+          <div class="btn-reject">✗</div>
+        </div>
+      </div>
+      <div class="approval-row">
+        <div class="approval-info">
+          <div class="approval-child">Jake</div>
+          <div class="approval-task">Do Dishes</div>
+          <div class="approval-time">Completed 4:15 PM</div>
+        </div>
+        <div class="approval-btns">
+          <div class="btn-approve">✓</div>
+          <div class="btn-reject">✗</div>
+        </div>
+      </div>
+
+      <div style="height: 70px;"></div>
+
+      <div class="tab-bar">
+        <div class="tab-item active"><div class="tab-icon">🏠</div>Home</div>
+        <div class="tab-item"><div class="tab-icon">✅</div>Approve</div>
+        <div class="tab-item"><div class="tab-icon">➕</div>Chore</div>
+        <div class="tab-item"><div class="tab-icon">📊</div>Stats</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHILD HOME -->
+  <div class="phone screen" id="screen-child-home">
+    <div class="phone-notch"></div>
+    <div class="phone-screen" style="background: #111827;">
+      <div class="app-header">
+        <h2>My Tasks</h2>
+        <span class="logout">Logout</span>
+      </div>
+      <div class="greeting">
+        <h2>Hey, Emma! 👋</h2>
+      </div>
+
+      <div class="level-card">
+        <div class="level-row">
+          <div class="level-emoji">⭐</div>
+          <div style="flex:1">
+            <div class="level-title">Level 5 — Champion</div>
+            <div class="level-sub">600 XP · 100 to next level</div>
+          </div>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:60%;"></div></div>
+        <div class="streak-row">
+          <span>🔥 8 day streak</span>
+          <span>💰 $12.50 earned</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:15px; font-weight:700;">Today's Missions</span>
+          <span style="font-size:13px; color:#9CA3AF;">3/5 complete</span>
+        </div>
+        <div class="progress-large"><div class="progress-large-fill" style="width:60%;"></div></div>
+      </div>
+
+      <div class="section-title">Tasks</div>
+
+      <div class="task-row" style="opacity:0.6;">
+        <div class="task-icon">🧹</div>
+        <div class="task-info">
+          <div class="task-title" style="text-decoration:line-through; color:#9CA3AF;">Make Bed</div>
+          <div class="task-meta"><span class="badge badge-easy">⭐</span> +5 XP · $0.50</div>
+        </div>
+        <div class="task-check check-done">✅</div>
+      </div>
+
+      <div class="task-row" style="opacity:0.6;">
+        <div class="task-icon">🪥</div>
+        <div class="task-info">
+          <div class="task-title" style="text-decoration:line-through; color:#9CA3AF;">Brush Teeth</div>
+          <div class="task-meta"><span class="badge badge-easy">⭐</span> +5 XP · $0.00</div>
+        </div>
+        <div class="task-check check-done">✅</div>
+      </div>
+
+      <div class="task-row" style="opacity:0.6;">
+        <div class="task-icon">🧹</div>
+        <div class="task-info">
+          <div class="task-title" style="text-decoration:line-through; color:#9CA3AF;">Clean Room</div>
+          <div class="task-meta"><span class="badge badge-medium">⭐⭐</span> +15 XP · $1.50</div>
+        </div>
+        <div class="task-check check-waiting">⏳</div>
+      </div>
+
+      <div class="task-row">
+        <div class="task-icon">🍽️</div>
+        <div class="task-info">
+          <div class="task-title">Do Dishes</div>
+          <div class="task-meta"><span class="badge badge-medium">⭐⭐</span> +15 XP · $1.50</div>
+        </div>
+        <div class="task-check check-green">✓</div>
+      </div>
+
+      <div class="task-row">
+        <div class="task-icon">📚</div>
+        <div class="task-info">
+          <div class="task-title">Homework</div>
+          <div class="task-meta"><span class="badge badge-hard">⭐⭐⭐</span> +25 XP · $2.00</div>
+        </div>
+        <div class="task-check check-green">✓</div>
+      </div>
+
+      <div style="height: 70px;"></div>
+
+      <div class="tab-bar">
+        <div class="tab-item active"><div class="tab-icon">🏠</div>Home</div>
+        <div class="tab-item"><div class="tab-icon">💰</div>Wallet</div>
+        <div class="tab-item"><div class="tab-icon">🏆</div>Badges</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD CHORE -->
+  <div class="phone screen" id="screen-add-chore">
+    <div class="phone-notch"></div>
+    <div class="phone-screen" style="background: #111827;">
+      <div class="app-header">
+        <h2>Add Chore</h2>
+        <span></span>
+      </div>
+
+      <div class="form-group">
+        <div class="form-label">Chore Title *</div>
+        <div class="form-input">Clean bathroom</div>
+      </div>
+
+      <div class="form-group">
+        <div class="form-label">Description</div>
+        <div class="form-input" style="min-height:60px;">Wipe counter, mirror, sweep floor</div>
+      </div>
+
+      <div class="section-title">Category</div>
+      <div class="chip-row">
+        <div class="chip active">🧹 Cleaning</div>
+        <div class="chip">🍽️ Kitchen</div>
+        <div class="chip">👕 Laundry</div>
+        <div class="chip">🌿 Outdoor</div>
+        <div class="chip">🐕 Pet Care</div>
+        <div class="chip">📚 Homework</div>
+        <div class="chip">🏃 Exercise</div>
+      </div>
+
+      <div class="section-title">Difficulty</div>
+      <div class="label-row">
+        <div class="label-btn">⭐ Easy</div>
+        <div class="label-btn active">⭐⭐ Medium</div>
+        <div class="label-btn">⭐⭐⭐ Hard</div>
+      </div>
+
+      <div style="display:flex; gap:10px; padding: 0 16px; margin-top: 14px;">
+        <div style="flex:1;">
+          <div class="form-label">XP Value</div>
+          <div class="form-input">15</div>
+        </div>
+        <div style="flex:1;">
+          <div class="form-label">Money ($)</div>
+          <div class="form-input">1.50</div>
+        </div>
+      </div>
+
+      <div class="section-title">Assign To</div>
+      <div class="chip-row">
+        <div class="chip active" style="background:#10B981; border-color:#10B981; color:#fff;">👧 Emma</div>
+        <div class="chip">🧒 Jake</div>
+        <div class="chip">👤 Alex</div>
+      </div>
+
+      <div class="switch-row">
+        <span class="switch-label">Require photo proof</span>
+        <div class="switch on"><div class="switch-knob"></div></div>
+      </div>
+      <div class="switch-row">
+        <span class="switch-label">Require parent approval</span>
+        <div class="switch on"><div class="switch-knob"></div></div>
+      </div>
+
+      <div class="btn-primary">✅ Create Chore</div>
+
+      <div style="height: 70px;"></div>
+
+      <div class="tab-bar">
+        <div class="tab-item"><div class="tab-icon">🏠</div>Home</div>
+        <div class="tab-item"><div class="tab-icon">✅</div>Approve</div>
+        <div class="tab-item active"><div class="tab-icon">➕</div>Chore</div>
+        <div class="tab-item"><div class="tab-icon">📊</div>Stats</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPROVALS -->
+  <div class="phone screen" id="screen-approvals">
+    <div class="phone-notch"></div>
+    <div class="phone-screen" style="background: #111827;">
+      <div class="app-header">
+        <h2>Approve Chores</h2>
+        <span></span>
+      </div>
+
+      <div class="btn-secondary">✅ Approve All (3)</div>
+
+      <div class="approval-row" style="flex-direction:column; align-items:stretch;">
+        <div style="display:flex; align-items:center;">
+          <div style="flex:1">
+            <div class="approval-child">👧 Emma</div>
+            <div class="approval-task" style="font-size:16px; font-weight:700; margin-top:2px;">Clean Room</div>
+            <div class="approval-time">Completed 3:42 PM · 📸 Photo attached</div>
+          </div>
+        </div>
+        <div style="display:flex; gap:8px; margin-top:12px;">
+          <div style="flex:1; background:#10B981; border-radius:10px; padding:10px; text-align:center; color:#fff; font-weight:700; font-size:14px;">✓ Approve</div>
+          <div style="background:#1F2937; border:1px solid #374151; border-radius:10px; padding:10px 16px; color:#EF4444; font-weight:600; font-size:14px;">✗ Redo</div>
+        </div>
+      </div>
+
+      <div class="approval-row" style="flex-direction:column; align-items:stretch;">
+        <div style="display:flex; align-items:center;">
+          <div style="flex:1">
+            <div class="approval-child">🧒 Jake</div>
+            <div class="approval-task" style="font-size:16px; font-weight:700; margin-top:2px;">Do Dishes</div>
+            <div class="approval-time">Completed 4:15 PM</div>
+          </div>
+        </div>
+        <div style="display:flex; gap:8px; margin-top:12px;">
+          <div style="flex:1; background:#10B981; border-radius:10px; padding:10px; text-align:center; color:#fff; font-weight:700; font-size:14px;">✓ Approve</div>
+          <div style="background:#1F2937; border:1px solid #374151; border-radius:10px; padding:10px 16px; color:#EF4444; font-weight:600; font-size:14px;">✗ Redo</div>
+        </div>
+      </div>
+
+      <div class="approval-row" style="flex-direction:column; align-items:stretch;">
+        <div style="display:flex; align-items:center;">
+          <div style="flex:1">
+            <div class="approval-child">👤 Alex</div>
+            <div class="approval-task" style="font-size:16px; font-weight:700; margin-top:2px;">Homework</div>
+            <div class="approval-time">Completed 5:30 PM</div>
+          </div>
+        </div>
+        <div style="display:flex; gap:8px; margin-top:12px;">
+          <div style="flex:1; background:#10B981; border-radius:10px; padding:10px; text-align:center; color:#fff; font-weight:700; font-size:14px;">✓ Approve</div>
+          <div style="background:#1F2937; border:1px solid #374151; border-radius:10px; padding:10px 16px; color:#EF4444; font-weight:600; font-size:14px;">✗ Redo</div>
+        </div>
+      </div>
+
+      <div style="height: 70px;"></div>
+
+      <div class="tab-bar">
+        <div class="tab-item"><div class="tab-icon">🏠</div>Home</div>
+        <div class="tab-item active"><div class="tab-icon">✅</div>Approve</div>
+        <div class="tab-item"><div class="tab-icon">➕</div>Chore</div>
+        <div class="tab-item"><div class="tab-icon">📊</div>Stats</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WALLET -->
+  <div class="phone screen" id="screen-wallet">
+    <div class="phone-notch"></div>
+    <div class="phone-screen" style="background: #111827;">
+      <div class="app-header">
+        <h2>My Wallet</h2>
+        <span></span>
+      </div>
+
+      <div class="balance-card">
+        <div class="balance-label">My Balance</div>
+        <div class="balance-value">$12.50</div>
+        <div class="balance-row">
+          <div class="balance-item">
+            <div class="balance-item-label">Total Earned</div>
+            <div class="balance-item-val" style="color:#34D399;">+$25.00</div>
+          </div>
+          <div class="balance-divider"></div>
+          <div class="balance-item">
+            <div class="balance-item-label">Total Spent</div>
+            <div class="balance-item-val" style="color:#F87171;">-$12.50</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="goal-card">
+        <div class="goal-title">🎯 Savings Goal</div>
+        <div style="font-size:13px; color:#9CA3AF; margin-top:4px;">New Headphones 🎧</div>
+        <div class="goal-bar"><div class="goal-fill" style="width:25%;"></div></div>
+        <div class="goal-progress">$12.50 / $50.00</div>
+      </div>
+
+      <div class="section-title">Recent Transactions</div>
+
+      <div class="tx-row">
+        <div class="tx-icon">💰</div>
+        <div class="tx-info"><div class="tx-desc">Chore completed</div><div class="tx-time">Today</div></div>
+        <div class="tx-amount tx-pos">+$1.50</div>
+      </div>
+      <div class="tx-row">
+        <div class="tx-icon">🛒</div>
+        <div class="tx-info"><div class="tx-desc">V-Bucks</div><div class="tx-time">Yesterday</div></div>
+        <div class="tx-amount tx-neg">-$10.00</div>
+      </div>
+      <div class="tx-row">
+        <div class="tx-icon">💰</div>
+        <div class="tx-info"><div class="tx-desc">Dishes done</div><div class="tx-time">Yesterday</div></div>
+        <div class="tx-amount tx-pos">+$1.50</div>
+      </div>
+      <div class="tx-row">
+        <div class="tx-icon">📈</div>
+        <div class="tx-info"><div class="tx-desc">Weekly bonus</div><div class="tx-time">Jun 20</div></div>
+        <div class="tx-amount tx-pos">+$2.00</div>
+      </div>
+      <div class="tx-row">
+        <div class="tx-icon">💰</div>
+        <div class="tx-info"><div class="tx-desc">Laundry done</div><div class="tx-time">Jun 19</div></div>
+        <div class="tx-amount tx-pos">+$2.00</div>
+      </div>
+
+      <div style="height: 70px;"></div>
+
+      <div class="tab-bar">
+        <div class="tab-item"><div class="tab-icon">🏠</div>Home</div>
+        <div class="tab-item active"><div class="tab-icon">💰</div>Wallet</div>
+        <div class="tab-item"><div class="tab-icon">🏆</div>Badges</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BADGES -->
+  <div class="phone screen" id="screen-badges">
+    <div class="phone-notch"></div>
+    <div class="phone-screen" style="background: #111827;">
+      <div class="app-header">
+        <h2>My Badges</h2>
+        <span></span>
+      </div>
+
+      <div style="background: linear-gradient(135deg, #4F46E5, #7C3AED); margin:16px; border-radius:14px; padding:24px; text-align:center;">
+        <div style="font-size:48px;">⭐</div>
+        <div style="font-size:28px; font-weight:800; margin-top:8px;">Level 5</div>
+        <div style="font-size:15px; color:rgba(255,255,255,0.7); margin-top:4px;">Champion</div>
+        <div style="font-size:13px; color:rgba(255,255,255,0.5); margin-top:8px;">600 Total XP</div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-value">🔥 8</div><div class="stat-label">Current Streak</div></div>
+        <div class="stat-card"><div class="stat-value">🏅 4</div><div class="stat-label">Badges Earned</div></div>
+        <div class="stat-card"><div class="stat-value">⭐ 12</div><div class="stat-label">Best Streak</div></div>
+      </div>
+
+      <div class="section-title">All Badges</div>
+
+      <div class="badge-row">
+        <div class="badge-icon">⭐</div>
+        <div class="badge-info"><div class="badge-name">First 100 XP</div><div class="badge-desc">Earn 100 XP total</div></div>
+        <div class="badge-check">✅</div>
+      </div>
+      <div class="badge-row">
+        <div class="badge-icon">🎯</div>
+        <div class="badge-info"><div class="badge-name">Level 5 Champion</div><div class="badge-desc">Reach Level 5</div></div>
+        <div class="badge-check">✅</div>
+      </div>
+      <div class="badge-row">
+        <div class="badge-icon">🔥</div>
+        <div class="badge-info"><div class="badge-name">3-Day Streak</div><div class="badge-desc">3 days in a row</div></div>
+        <div class="badge-check">✅</div>
+      </div>
+      <div class="badge-row">
+        <div class="badge-icon">🔥🔥</div>
+        <div class="badge-info"><div class="badge-name">7-Day Streak</div><div class="badge-desc">7 days in a row</div></div>
+        <div class="badge-check">✅</div>
+      </div>
+      <div class="badge-row locked">
+        <div class="badge-icon">🔒</div>
+        <div class="badge-info"><div class="badge-name">1000 XP Club</div><div class="badge-desc">Earn 1000 XP total</div></div>
+      </div>
+      <div class="badge-row locked">
+        <div class="badge-icon">🔒</div>
+        <div class="badge-info"><div class="badge-name">14-Day Streak</div><div class="badge-desc">14 days in a row</div></div>
+      </div>
+      <div class="badge-row locked">
+        <div class="badge-icon">🔒</div>
+        <div class="badge-info"><div class="badge-name">30-Day Streak</div><div class="badge-desc">30 days in a row</div></div>
+      </div>
+      <div class="badge-row locked">
+        <div class="badge-icon">🔒</div>
+        <div class="badge-info"><div class="badge-name">Level 10 Grandmaster</div><div class="badge-desc">Reach Level 10</div></div>
+      </div>
+
+      <div style="height: 70px;"></div>
+
+      <div class="tab-bar">
+        <div class="tab-item"><div class="tab-icon">🏠</div>Home</div>
+        <div class="tab-item"><div class="tab-icon">💰</div>Wallet</div>
+        <div class="tab-item active"><div class="tab-icon">🏆</div>Badges</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+
+</body>
+</html>

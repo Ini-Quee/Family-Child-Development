@@ -1,0 +1,2 @@
+# Dependencies — skip these in the Docker image
+nodemon

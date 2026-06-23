@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FamilyOS v2 — Family Economy Simulator</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0a0a1a; font-family: 'Inter', -apple-system, sans-serif; color: #fff; }
+
+  .top-bar { background: linear-gradient(135deg, #0f0f2e, #1a1a3e); padding: 20px 32px; border-bottom: 2px solid #2d2b55; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .top-bar h1 { font-size: 22px; font-weight: 800; background: linear-gradient(135deg, #a78bfa, #818cf8, #6366f1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .top-bar span { font-size: 12px; color: #6b7280; font-weight: 500; }
+
+  .nav { background: #0f0f2e; padding: 12px 32px; display: flex; gap: 6px; flex-wrap: wrap; position: sticky; top: 64px; z-index: 99; border-bottom: 1px solid #1a1a3e; }
+  .nav button { background: #1a1a3e; color: #6b7280; border: 1px solid #2d2b55; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s; font-family: inherit; }
+  .nav button:hover, .nav button.active { background: linear-gradient(135deg, #6366f1, #7c3aed); color: #fff; border-color: #6366f1; box-shadow: 0 0 16px rgba(99,102,241,0.3); }
+
+  .container { display: flex; justify-content: center; padding: 32px; gap: 32px; flex-wrap: wrap; }
+
+  .phone { width: 390px; min-height: 844px; background: #0f0f23; border-radius: 44px; border: 3px solid #2d2b55; overflow: hidden; box-shadow: 0 25px 80px rgba(0,0,0,0.6), 0 0 40px rgba(99,102,241,0.1); position: relative; }
+  .phone-notch { width: 126px; height: 34px; background: #000; border-radius: 0 0 20px 20px; margin: 0 auto; position: relative; z-index: 10; }
+  .phone-screen { padding: 0; min-height: 776px; overflow-y: auto; }
+  .phone-screen::-webkit-scrollbar { width: 0; }
+
+  .status-bar { display: flex; justify-content: space-between; align-items: center; padding: 6px 24px; font-size: 11px; color: #6b7280; font-weight: 600; }
+
+  /* App header */
+  .app-header { background: linear-gradient(135deg, #4338ca, #6d28d9); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
+  .app-header h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.3px; }
+  .app-header .sub { font-size: 11px; color: rgba(255,255,255,0.6); }
+
+  /* Cards */
+  .card { background: #1a1a2e; margin: 10px 14px; border-radius: 14px; padding: 16px; border: 1px solid #2d2b55; }
+  .card-glow { box-shadow: 0 0 20px rgba(99,102,241,0.08); }
+
+  /* Stats row */
+  .stats-row { display: flex; gap: 8px; padding: 0 14px; margin-top: 10px; }
+  .stat-card { flex: 1; background: #1a1a2e; border-radius: 12px; padding: 12px; text-align: center; border: 1px solid #2d2b55; }
+  .stat-value { font-size: 20px; font-weight: 800; }
+  .stat-label { font-size: 10px; color: #6b7280; margin-top: 3px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .section-title { font-size: 13px; font-weight: 700; padding: 14px 18px 6px; color: #a78bfa; text-transform: uppercase; letter-spacing: 0.8px; }
+
+  /* Task row */
+  .task-row { display: flex; align-items: center; background: #1a1a2e; margin: 5px 14px; border-radius: 12px; padding: 12px 14px; border: 1px solid #2d2b55; transition: all 0.2s; }
+  .task-row:hover { border-color: #6366f1; box-shadow: 0 0 12px rgba(99,102,241,0.15); }
+  .task-row.completed { opacity: 0.5; }
+  .task-icon { font-size: 20px; margin-right: 10px; width: 28px; text-align: center; }
+  .task-info { flex: 1; }
+  .task-title { font-size: 14px; font-weight: 600; }
+  .task-meta { font-size: 11px; color: #6b7280; margin-top: 2px; display: flex; gap: 6px; align-items: center; }
+  .task-check { width: 32px; height: 32px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+  .check-green { background: linear-gradient(135deg, #059669, #10b981); color: #fff; }
+  .check-pending { background: #2d2b55; color: #6b7280; }
+  .check-waiting { background: #92400e; color: #fbbf24; }
+
+  /* Level card */
+  .level-card { background: linear-gradient(135deg, #4338ca, #6d28d9, #7c3aed); margin: 10px 14px; border-radius: 16px; padding: 18px; position: relative; overflow: hidden; }
+  .level-card::before { content: ''; position: absolute; top: -50%; right: -30%; width: 200px; height: 200px; background: radial-gradient(circle, rgba(255,255,255,0.08), transparent); border-radius: 50%; }
+  .level-row { display: flex; align-items: center; gap: 12px; position: relative; }
+  .level-emoji { font-size: 32px; }
+  .level-title { font-size: 16px; font-weight: 800; }
+  .level-sub { font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 1px; }
+  .progress-bar { height: 6px; background: rgba(255,255,255,0.15); border-radius: 3px; margin-top: 12px; position: relative; }
+  .progress-fill { height: 6px; background: linear-gradient(90deg, #a78bfa, #c4b5fd); border-radius: 3px; }
+  .streak-row { display: flex; justify-content: space-between; margin-top: 10px; font-size: 12px; color: rgba(255,255,255,0.7); font-weight: 600; position: relative; }
+
+  /* Child card */
+  .child-card { background: #1a1a2e; margin: 8px 14px; border-radius: 14px; padding: 14px; border: 1px solid #2d2b55; }
+  .child-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .child-avatar { font-size: 28px; }
+  .child-name { font-size: 15px; font-weight: 700; }
+  .child-level { font-size: 11px; color: #6b7280; margin-top: 1px; }
+  .trust-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; }
+  .trust-high { background: #065f46; color: #34d399; }
+  .trust-med { background: #92400e; color: #fbbf24; }
+  .trust-low { background: #7f1d1d; color: #f87171; }
+  .child-stats { display: flex; justify-content: space-around; border-top: 1px solid #2d2b55; padding-top: 10px; }
+  .child-stat { text-align: center; }
+  .child-stat-val { font-size: 14px; font-weight: 700; }
+  .child-stat-lbl { font-size: 9px; color: #6b7280; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.3px; }
+
+  /* Marketplace */
+  .market-card { background: linear-gradient(135deg, #1a1a2e, #1e1b4b); margin: 8px 14px; border-radius: 14px; padding: 14px; border: 1px solid #3730a3; position: relative; overflow: hidden; }
+  .market-card::after { content: ''; position: absolute; top: 0; right: 0; width: 80px; height: 80px; background: radial-gradient(circle, rgba(99,102,241,0.15), transparent); }
+  .market-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .tag-premium { background: #7c3aed; color: #fff; }
+  .tag-sos { background: #dc2626; color: #fff; animation: pulse 2s infinite; }
+  .tag-standard { background: #374151; color: #9ca3af; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+  .market-title { font-size: 15px; font-weight: 700; }
+  .market-reward { font-size: 20px; font-weight: 800; color: #a78bfa; margin-top: 4px; }
+  .market-meta { font-size: 11px; color: #6b7280; margin-top: 4px; display: flex; gap: 10px; }
+  .market-timer { display: inline-flex; align-items: center; gap: 4px; color: #f59e0b; font-weight: 700; font-size: 12px; }
+  .market-slots { font-size: 11px; color: #6b7280; margin-top: 6px; }
+  .bid-btn { background: linear-gradient(135deg, #6366f1, #7c3aed); color: #fff; border: none; border-radius: 10px; padding: 10px; font-size: 13px; font-weight: 700; width: 100%; margin-top: 10px; cursor: pointer; font-family: inherit; }
+  .bid-btn:disabled { background: #374151; color: #6b7280; }
+
+  /* Approval */
+  .approval-card { background: #1a1a2e; margin: 8px 14px; border-radius: 14px; padding: 14px; border: 1px solid #2d2b55; }
+  .approval-child { font-size: 11px; font-weight: 600; color: #a78bfa; }
+  .approval-task { font-size: 15px; font-weight: 700; margin-top: 2px; }
+  .approval-time { font-size: 11px; color: #6b7280; margin-top: 2px; }
+  .evidence-thumb { width: 100%; height: 120px; background: #2d2b55; border-radius: 10px; margin-top: 10px; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #6b7280; }
+  .star-row { display: flex; gap: 4px; margin-top: 10px; }
+  .star { font-size: 20px; cursor: pointer; opacity: 0.3; }
+  .star.active { opacity: 1; }
+  .approval-btns { display: flex; gap: 8px; margin-top: 10px; }
+  .btn-approve { flex: 1; background: linear-gradient(135deg, #059669, #10b981); color: #fff; border: none; border-radius: 10px; padding: 10px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .btn-reject { background: #1f2937; border: 1px solid #374151; color: #f87171; border-radius: 10px; padding: 10px 16px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; }
+
+  /* Wallet */
+  .balance-card { background: linear-gradient(135deg, #4338ca, #6d28d9); margin: 14px; border-radius: 16px; padding: 22px; text-align: center; position: relative; overflow: hidden; }
+  .balance-card::before { content: '💰'; position: absolute; top: 10px; right: 20px; font-size: 60px; opacity: 0.1; }
+  .balance-label { font-size: 11px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; }
+  .balance-value { font-size: 42px; font-weight: 900; margin-top: 4px; letter-spacing: -1px; }
+  .balance-row { display: flex; margin-top: 16px; }
+  .balance-item { flex: 1; text-align: center; }
+  .balance-divider { width: 1px; background: rgba(255,255,255,0.15); }
+  .balance-item-label { font-size: 10px; color: rgba(255,255,255,0.4); text-transform: uppercase; }
+  .balance-item-val { font-size: 14px; font-weight: 700; margin-top: 3px; }
+
+  .tx-row { display: flex; align-items: center; background: #1a1a2e; margin: 4px 14px; border-radius: 10px; padding: 11px 13px; border: 1px solid #2d2b55; }
+  .tx-icon { font-size: 18px; margin-right: 10px; width: 24px; text-align: center; }
+  .tx-info { flex: 1; }
+  .tx-desc { font-size: 12px; font-weight: 600; }
+  .tx-time { font-size: 10px; color: #6b7280; margin-top: 1px; }
+  .tx-amount { font-size: 14px; font-weight: 700; }
+  .tx-pos { color: #34d399; }
+  .tx-neg { color: #f87171; }
+  .tx-tax { color: #f59e0b; }
+
+  /* Badge */
+  .badge-row { display: flex; align-items: center; background: #1a1a2e; margin: 5px 14px; border-radius: 12px; padding: 12px 14px; border: 1px solid #2d2b55; }
+  .badge-row.locked { opacity: 0.35; }
+  .badge-icon { font-size: 24px; margin-right: 12px; width: 28px; text-align: center; }
+  .badge-info { flex: 1; }
+  .badge-name { font-size: 13px; font-weight: 700; }
+  .badge-desc { font-size: 10px; color: #6b7280; margin-top: 1px; }
+  .badge-check { font-size: 16px; }
+
+  /* Keypad */
+  .keypad { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; padding: 0 40px; margin-top: 20px; }
+  .key-btn { width: 66px; height: 66px; border-radius: 33px; background: #1a1a2e; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 600; cursor: pointer; border: 1px solid #2d2b55; transition: all 0.15s; }
+  .key-btn:hover { background: #2d2b55; border-color: #6366f1; }
+  .key-btn.empty { background: transparent; border: none; }
+
+  .pin-dots { display: flex; justify-content: center; gap: 16px; margin: 20px 0; }
+  .pin-dot { width: 16px; height: 16px; border-radius: 8px; border: 2px solid #6366f1; }
+  .pin-dot.filled { background: #6366f1; box-shadow: 0 0 8px rgba(99,102,241,0.5); }
+
+  .child-grid { display: flex; justify-content: center; gap: 14px; padding: 20px; flex-wrap: wrap; }
+  .child-select-card { background: #1a1a2e; border-radius: 16px; padding: 22px; text-align: center; width: 120px; cursor: pointer; border: 2px solid #2d2b55; transition: all 0.2s; }
+  .child-select-card:hover { border-color: #6366f1; box-shadow: 0 0 20px rgba(99,102,241,0.2); transform: translateY(-2px); }
+  .child-select-avatar { font-size: 44px; }
+  .child-select-name { font-size: 15px; font-weight: 700; margin-top: 8px; }
+  .child-select-age { font-size: 11px; color: #6b7280; margin-top: 3px; }
+
+  /* Tab bar */
+  .tab-bar { display: flex; background: #0a0a1a; border-top: 1px solid #1a1a2e; padding: 8px 0 14px; position: absolute; bottom: 0; left: 0; right: 0; }
+  .tab-item { flex: 1; text-align: center; font-size: 9px; color: #4b5563; cursor: pointer; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+  .tab-item.active { color: #a78bfa; }
+  .tab-icon { font-size: 18px; margin-bottom: 2px; }
+
+  /* Form */
+  .form-group { padding: 0 14px; margin-top: 12px; }
+  .form-label { font-size: 11px; font-weight: 600; color: #6b7280; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.3px; }
+  .form-input { background: #1a1a2e; border: 1px solid #2d2b55; border-radius: 10px; padding: 11px 13px; color: #f3f4f6; font-size: 13px; width: 100%; font-family: inherit; }
+  .form-input:focus { border-color: #6366f1; outline: none; }
+
+  .chip-row { display: flex; gap: 6px; flex-wrap: wrap; padding: 0 14px; margin-top: 8px; }
+  .chip { padding: 6px 12px; border-radius: 8px; background: #1a1a2e; border: 1px solid #2d2b55; font-size: 11px; color: #6b7280; font-weight: 600; cursor: pointer; }
+  .chip.active { background: #4338ca; border-color: #6366f1; color: #fff; }
+
+  .label-row { display: flex; gap: 6px; padding: 0 14px; margin-top: 10px; }
+  .label-btn { flex: 1; padding: 9px; border-radius: 10px; background: #1a1a2e; border: 1px solid #2d2b55; text-align: center; font-size: 11px; color: #6b7280; cursor: pointer; font-weight: 600; }
+  .label-btn.active { background: #4338ca; border-color: #6366f1; color: #fff; }
+
+  .switch-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid #1a1a2e; }
+  .switch-label { font-size: 13px; color: #d1d5db; }
+  .switch { width: 40px; height: 22px; background: #374151; border-radius: 11px; position: relative; cursor: pointer; }
+  .switch.on { background: #6366f1; }
+  .switch-knob { width: 18px; height: 18px; background: #fff; border-radius: 9px; position: absolute; top: 2px; left: 2px; transition: left 0.2s; }
+  .switch.on .switch-knob { left: 20px; }
+
+  .btn-primary { background: linear-gradient(135deg, #6366f1, #7c3aed); color: #fff; border: none; border-radius: 12px; padding: 13px; font-size: 14px; font-weight: 700; width: calc(100% - 28px); margin: 16px 14px; cursor: pointer; text-align: center; font-family: inherit; box-shadow: 0 4px 16px rgba(99,102,241,0.3); }
+  .btn-secondary { background: linear-gradient(135deg, #059669, #10b981); color: #fff; border: none; border-radius: 10px; padding: 11px; font-size: 13px; font-weight: 700; margin: 10px 14px; cursor: pointer; text-align: center; font-family: inherit; }
+
+  .greeting { padding: 14px 18px 0; }
+  .greeting h2 { font-size: 20px; font-weight: 800; letter-spacing: -0.3px; }
+  .greeting p { font-size: 12px; color: #6b7280; margin-top: 3px; }
+
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; }
+  .badge-easy { background: #065f46; color: #34d399; }
+  .badge-medium { background: #92400e; color: #fbbf24; }
+  .badge-hard { background: #7f1d1d; color: #f87171; }
+
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* Economy overview */
+  .economy-bar { display: flex; background: #1a1a2e; margin: 10px 14px; border-radius: 12px; border: 1px solid #2d2b55; overflow: hidden; }
+  .economy-seg { flex: 1; padding: 10px; text-align: center; border-right: 1px solid #2d2b55; }
+  .economy-seg:last-child { border-right: none; }
+  .economy-val { font-size: 16px; font-weight: 800; }
+  .economy-lbl { font-size: 9px; color: #6b7280; margin-top: 2px; text-transform: uppercase; }
+
+  /* Countdown */
+  .countdown { display: inline-flex; align-items: center; gap: 4px; background: #1a1a2e; padding: 3px 8px; border-radius: 6px; border: 1px solid #92400e; }
+  .countdown-text { font-size: 11px; font-weight: 700; color: #f59e0b; }
+  .countdown-dot { width: 6px; height: 6px; border-radius: 3px; background: #f59e0b; animation: pulse 1s infinite; }
+
+  /* Reputation meter */
+  .rep-meter { height: 6px; background: #2d2b55; border-radius: 3px; overflow: hidden; }
+  .rep-fill { height: 6px; border-radius: 3px; }
+  .rep-high { background: linear-gradient(90deg, #059669, #34d399); }
+  .rep-med { background: linear-gradient(90deg, #d97706, #fbbf24); }
+  .rep-low { background: linear-gradient(90deg, #dc2626, #f87171); }
+
+  .empty-state { text-align: center; padding: 36px 20px; }
+  .empty-emoji { font-size: 44px; }
+  .empty-text { font-size: 14px; color: #6b7280; margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div>
+    <h1>👨‍👩‍👧‍👦 FamilyOS v2 — Economy Simulator</h1>
+    <span>12 screens · Marketplace · Bidding · Reputation · Evidence</span>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="active" onclick="showScreen('login')">Login</button>
+  <button onclick="showScreen('child-select')">Child Select</button>
+  <button onclick="showScreen('child-pin')">Child PIN</button>
+  <button onclick="showScreen('parent-dash')">Parent Dashboard</button>
+  <button onclick="showScreen('child-home')">Child Marketplace</button>
+  <button onclick="showScreen('add-chore')">Post a Job</button>
+  <button onclick="showScreen('evidence-review')">Evidence Review</button>
+  <button onclick="showScreen('wallet')">Wallet</button>
+  <button onclick="showScreen('reputation')">Reputation</button>
+  <button onclick="showScreen('badges')">Badges</button>
+  <button onclick="showScreen('screen-time')">Screen Time Shop</button>
+  <button onclick="showScreen('child-progress')">Child Progress</button>
+</div>
+
+<div class="container">
+
+  <!-- LOGIN -->
+  <div class="phone screen active" id="screen-login">
+    <div class="phone-notch"></div>
+    <div class="phone-screen" style="background: #0f0f23;">
+      <div style="padding: 80px 24px 24px; text-align: center;">
+        <div style="font-size: 56px; filter: drop-shadow(0 0 20px rgba(99,102,241,0.3));">👨‍👩‍👧‍👦</div>
+        <div style="font-size: 30px; font-weight: 900; background: linear-gradient(135deg, #a78bfa, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-top: 8px;">FamilyOS</div>
+        <div style="font-size: 13px; color: #6b7280; margin-top: 4px; font-weight: 500;">The Family Economy</div>
+      </div>
+      <div style="background: #1a1a2e; margin: 0 18px; border-radius: 16px; padding: 22px; border: 1px solid #2d2b55;">
+        <div style="font-size: 18px; font-weight: 700; text-align: center; margin-bottom: 18px;">Parent Login</div>
+        <div style="margin-bottom: 12px;">
+          <div style="font-size: 11px; font-weight: 600; color: #6b7280; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.3px;">Email</div>
+          <div class="form-input">sarah@demo.com</div>
+        </div>
+        <div style="margin-bottom: 12px;">
+          <div style="font-size: 11px; font-weight: 600; color: #6b7280; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.3px;">Password</div>
+          <div class="form-input">•••••••••</div>
+        </div>
+        <div style="background: linear-gradient(135deg, #6366f1, #7c3aed); border-radius: 12px; padding: 13px; text-align: center; color: #fff; font-weight: 700; font-size: 14px; margin-top: 16px; box-shadow: 0 4px 16px rgba(99,102,241,0.3); cursor: pointer;">Login</div>
+        <div style="text-align: center; margin-top: 14px; font-size: 12px; color: #6b7280;">Don't have an account? <span style="color: #a78bfa; font-weight: 600; cursor: pointer;">Register</span></div>
+        <div style="text-align: center; margin-top: 10px; font-size: 12px; color: #6b7280;">👶 <span style="color: #a78bfa; font-weight: 600; cursor: pointer;">I'm a kid — Login with PIN</span></div>
+      </div>
+      <div style="text-align: center; margin-top: 14px; font-size: 10px; color: #4b5563;">Demo: sarah@demo.com / password123</div>
+    </div>
+  </div>
+
+  <!-- CHILD SELECT -->
+  <div class="phone screen" id="screen-child-select">
+    <div class="phone-notch"></div>
+    <div class="phone-screen" style="background: #0f0f23;">
+      <div style="padding: 80px 24px 16px; text-align: center;">
+        <div style="font-size: 24px; font-weight: 800;">Who are you?</div>
+        <div style="font-size: 13px; color: #6b7280; margin-top: 5px;">Tap your name to enter the economy</div>
+      </div>
+      <div class="child-grid">
+        <div class="child-select-card">
+          <div class="child-select-avatar">👧</div>
+          <div class="child-select-name">Emma</div>
+          <div class="child-select-age">Age 10 · Lvl 5</div>
+        </div>
+        <div class="child-select-card">
+          <div class="child-select-avatar">🧒</div>
+          <div class="child-select-name">Jake</div>
+          <div class="child-select-age">Age 13 · Lvl 3</div>
+        </div>
+        <div class="child-select-card">
+          <div class="child-select-avatar">👤</div>
+          <div class="child-select-name">Alex</div>
+          <div class="child-select-age">Age 16 · Lvl 8</div>
+        </div>
+      </div>
+      <div style="text-align: center; margin-top: 20px;">
+        <span style="font-size: 12px; color: #6366f1; font-weight: 600; cursor: pointer;">← Back to Parent Login</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHILD PIN -->
+  <div class="phone screen" id="screen-child-pin">
+    <div class="phone-notch"></div>
+    <div class="phone-screen" style="background: #0f0f23;">
+      <div style="padding: 60px 24px 0; text-align: center;">
+        <div style="font-size: 12px; color: #6366f1; font-weight: 600; margin-bottom: 14px; cursor: pointer;">← Choose different person</div>
+        <div style="font-size: 24px; font-weight: 800;">Hi, Emma!</div>
+        <div style="font-size: 13px; color: #6b7280; margin-top: 5px;">Enter your 4-digit PIN</div>
+      </div>
+      <div class="pin-dots"><div class="pin-dot filled"></div><div class="pin-dot filled"></div><div class="pin-dot"></div><div class="pin-dot"></div></div>
+      <div class="keypad">
+        <div class="key-btn">1</div><div class="key-btn">2</div><div class="key-btn">3</div>
+        <div class="key-btn">4</div><div class="key-btn">5</div><div class="key-btn">6</div>
+        <div class="key-btn">7</div><div class="key-btn">8</div><div class="key-btn">9</div>
+        <div class="key-btn empty"></div><div class="key-btn">0</div><div class="key-btn">⌫</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PARENT DASHBOARD -->
+  <div class="phone screen" id="screen-parent-dash">
+    <div class="phone-notch"></div>
+    <div class="phone-screen" style="background: #0f0f23;">
+      <div class="app-header">
+        <div><h2>FamilyOS</h2><div class="sub">Governor Dashboard</div></div>
+        <span style="font-size: 12px; color: rgba(255,255,255,0.5); cursor: pointer;">Logout</span>
+      </div>
+      <div class="greeting">
+        <h2>Hi, Sarah 👋</h2>
+        <p>Monday, June 24 · Economy running smoothly</p>
+      </div>
+
+      <div class="economy-bar">
+        <div class="economy-seg"><div class="economy-val" style="color: #a78bfa;">$47.20</div><div class="economy-lbl">Circulating</div></div>
+        <div class="economy-seg"><div class="economy-val" style="color: #f59e0b;">$6.30</div><div class="economy-lbl">Tax Pool</div></div>
+        <div class="economy-seg"><div class="economy-val" style="color: #34d399;">82%</div><div class="economy-lbl">Completion</div></div>
+        <div class="economy-seg"><div class="economy-val" style="color: #818cf8;">3</div><div class="economy-lbl">Pending</div></div>
+      </div>
+
+      <div class="section-title">Trust Scores</div>
+
+      <div class="child-card">
+        <div class="child-header">
+          <div class="child-avatar">👧</div>
+          <div style="flex:1">
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span class="child-name">Emma</span>
+              <span class="trust-badge trust-high">★ 94</span>
+            </div>
+            <div class="child-level">Level 5 · 600 XP · 🔥 8 streak</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:16px; font-weight:800; color:#a78bfa;">$18.50</div>
+            <div style="font-size:10px; color:#6b7280;">earned</div>
+          </div>
+        </div>
+        <div class="rep-meter"><div class="rep-fill rep-high" style="width:94%;"></div></div>
+        <div class="child-stats">
+          <div class="child-stat"><div class="child-stat-val">5</div><div class="child-stat-lbl">Tasks</div></div>
+          <div class="child-stat"><div class="child-stat-val" style="color:#34d399;">4</div><div class="child-stat-lbl">Done</div></div>
+          <div class="child-stat"><div class="child-stat-val" style="color:#f59e0b;">1</div><div class="child-stat-lbl">Review</div></div>
+          <div class="child-stat"><div class="child-stat-val" style="color:#a78bfa;">2</div><div class="child-stat-lbl">Bids Won</div></div>
+        </div>
+      </div>
+
+      <div class="child-card">
+        <div class="child-header">
+          <div class="child-avatar">🧒</div>
+          <div style="flex:1">
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span class="child-name">Jake</span>
+              <span class="trust-badge trust-med">★ 71</span>
+            </div>
+            <div class="child-level">Level 3 · 250 XP · 🔥 3 streak</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:16px; font-weight:800; color:#a78bfa;">$12.00</div>
+            <div style="font-size:10px; color:#6b7280;">earned</div>
+          </div>
+        </div>
+        <div class="rep-meter"><div class="rep-fill rep-med" style="width:71%;"></div></div>
+        <div class="child-stats">
+          <div class="child-stat"><div class="child-stat-val">4</div><div class="child-stat-lbl">Tasks</div></div>
+          <div class="child-stat"><div class="child-stat-val" style="color:#34d399;">2</div><div class="child-stat-lbl">Done</div></div>
+          <div class="child-stat"><div class="child-stat-val" style="color:#f59e0b;">1</div><div class="child-stat-lbl">Review</div></div>
+          <div class="child-stat"><div class="child-stat-val" style="color:#a78bfa;">0</div><div class="child-stat-lbl">Bids Won</div></div>
+        </div>
+      </div>
+
+      <div class="child-card">
+        <div class="child-header">
+          <div class="child-avatar">👤</div>
+          <div style="flex:1">
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span class="child-name">Alex</span>
+              <span class="trust-badge trust-high">★ 97</span>
+            </div>
+            <div class="child-level">Level 8 · 1500 XP · 🔥 22 streak</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:16px; font-weight:800; color:#a78bfa;">$45.00</div>
+            <div style="font-size:10px; color:#6b7280;">earned</div>
+          </div>
+        </div>
+        <div class="rep-meter"><div class="rep-fill rep-high" style="width:97%;"></div></div>
+        <div class="child-stats">
+          <div class="child-stat"><div class="child-stat-val">3</div><div class="child-stat-lbl">Tasks</div></div>
+          <div class="child-stat"><div class="child-stat-val" style="color:#34d399;">3</div><div class="child-stat-lbl">Done</div></div>
+          <div class="child-stat"><div class="child-stat-val" style="color:#f59e0b;">0</div><div class="child-stat-lbl">Review</div></div>
+          <div class="child-stat"><div class="child-stat-val" style="color:#a78bfa;">3</div><div class="child-stat-lbl">Bids Won</div></div>
+        </div>
+      </div>
+
+      <div class="section-title">⚠️ Needs Attention</div>
+      <div class="card card-glow" style="border-color: #92400e;">
+        <div style="font-size: 12px; color: #f59e0b; font-weight: 700;">📉 Jake's trust score dropped below 75</div>
+        <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">2 rejected evidence submissions this week. Consider a booster task.</div>
+        <div style="display:flex; gap:6px; margin-top:8px;">
+          <span style="background:#6366f1; color:#fff; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:600; cursor:pointer;">Assign Booster</span>
+          <span style="background:#1f2937; color:#9ca3af; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:600; cursor:pointer;">Dismiss</span>
+        </div>
+      </div>
+
+      <div style="height: 70px;"></div>
+      <div class="tab-bar">
+        <div class="tab-item active"><div class="tab-icon">🏠</div>Home</div>
+        <div class="tab-item"><div class="tab-icon">📸</div>Review</div>
+        <div class="tab-item"><div class="tab-icon">📋</div>Post</div>
+        <div class="tab-item"><div class="tab-icon">📊</div>Stats</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHILD HOME — MARKETPLACE -->
+  <div class="phone screen" id="screen-child-home">
+    <div class="phone-notch"></div>
+    <div class="phone-screen" style="background: #0f0f23;">
+      <div class="app-header">
+        <div><h2>Marketplace</h2><div class="sub">Hey, Emma! 4 jobs available</div></div>
+        <div style="text-align:right">
+          <div style="font-size:16px; font-weight:800;">$18.50</div>
+          <div style="font-size:10px; color:rgba(255,255,255,0.5);">balance</div>
+        </div>
+      </div>
+
+      <div class="level-card">
+        <div class="level-row">
+          <div class="level-emoji">⭐</div>
+          <div style="flex:1">
+            <div class="level-title">Level 5 — Champion</div>
+            <div class="level-sub">Trust: ★ 94 · 🔥 8 day streak</div>
+          </div>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:60%;"></div></div>
+        <div class="streak-row"><span>600 / 700 XP</span><span>💰 $18.50 wallet</span></div>
+      </div>
+
+      <div class="section-title">🔥 Premium Bounties</div>
+
+      <div class="market-card" style="border-color: #7c3aed;">
+        <div class="market-tag tag-premium">Premium</div>
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <div>
+            <div class="market-title">Wash the Car</div>
+            <div class="market-reward">$8.00</div>
+          </div>
+          <div class="countdown"><div class="countdown-dot"></div><div class="countdown-text">18:42</div></div>
+        </div>
+        <div class="market-meta"><span>⭐ Min trust: 70</span><span>📸 Evidence required</span></div>
+        <div class="market-slots">1 of 2 slots filled · Jake is bidding</div>
+        <button class="bid-btn">Place Bid — $2.00</button>
+      </div>
+
+      <div class="market-card" style="border-color: #dc2626;">
+        <div class="market-tag tag-sos">SOS</div>
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <div>
+            <div class="market-title">Walk the Dog NOW</div>
+            <div class="market-reward">$5.00</div>
+          </div>
+          <div class="countdown"><div class="countdown-dot"></div><div class="countdown-text">04:12</div></div>
+        </div>
+        <div class="market-meta"><span>⚡ Urgent</span><span>📸 Evidence required</span></div>
+        <div class="market-slots">First to accept wins</div>
+        <button class="bid-btn" style="background: linear-gradient(135deg, #dc2626, #ef4444);">Accept Now</button>
+      </div>
+
+      <div class="section-title">📋 Standard Jobs</div>
+
+      <div class="market-card">
+        <div class="market-tag tag-standard">Standard</div>
+        <div class="market-title">Make Bed</div>
+        <div class="market-reward">$0.50 · +5 XP</div>
+        <div class="market-meta"><span>⏰ Before 9am</span><span>✓ Auto-approve</span></div>
+        <button class="bid-btn">Mark Done</button>
+      </div>
+
+      <div class="market-card">
+        <div class="market-tag tag-standard">Standard</div>
+        <div class="market-title">Brush Teeth</div>
+        <div class="market-reward">$0.00 · +5 XP</div>
+        <div class="market-meta"><span>⏰ Morning & night</span><span>✓ Auto-approve</span></div>
+        <button class="bid-btn">Mark Done</button>
+      </div>
+
+      <div class="market-card" style="opacity:0.5;">
+        <div class="market-tag tag-standard">Standard</div>
+        <div class="market-title">Clean Room</div>
+        <div class="market-reward">$1.50 · +15 XP</div>
+        <div class="market-meta"><span>⏰ Before dinner</span><span>📸 Evidence required</span></div>
+        <button class="bid-btn" disabled>⏳ Awaiting Review</button>
+      </div>
+
+      <div style="height: 70px;"></div>
+      <div class="tab-bar">
+        <div class="tab-item active"><div class="tab-icon">🏪</div>Market</div>
+        <div class="tab-item"><div class="tab-icon">💰</div>Wallet</div>
+        <div class="tab-item"><div class="tab-icon">⭐</div>Rep</div>
+        <div class="tab-item"><div class="tab-icon">🏆</div>Badges</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- POST A JOB (Add Chore) -->
+  <div class="phone screen" id="screen-add-chore">
+    <div class="phone-notch"></div>
+    <div class="phone-screen" style="background: #0f0f23;">
+      <div class="app-header"><h2>Post a Job</h2><span></span></div>
+
+      <div class="form-group"><div class="form-label">Job Title *</div><div class="form-input">Wash the Car</div></div>
+      <div class="form-group"><div class="form-label">Description</div><div class="form-input" style="min-height:50px;">Full exterior wash, dry, and tire shine</div></div>
+
+      <div class="section-title">Job Type</div>
+      <div class="label-row">
+        <div class="label-btn active">📋 Standard</div>
+        <div class="label-btn">🔥 Premium</div>
+        <div class="label-btn">⚡ SOS</div>
+      </div>
+
+      <div class="section-title">Category</div>
+      <div class="chip-row">
+        <div class="chip">🧹 Clean</div>
+        <div class="chip">🍽️ Kitchen</div>
+        <div class="chip">👕 Laundry</div>
+        <div class="chip active">🚗 Outdoor</div>
+        <div class="chip">🐕 Pet</div>
+        <div class="chip">📚 Study</div>
+      </div>
+
+      <div style="display:flex; gap:8px; padding:0 14px; margin-top:12px;">
+        <div style="flex:1;"><div class="form-label">Base Reward ($)</div><div class="form-input">8.00</div></div>
+        <div style="flex:1;"><div class="form-label">XP Value</div><div class="form-input">25</div></div>
+      </div>
+
+      <div style="display:flex; gap:8px; padding:0 14px; margin-top:10px;">
+        <div style="flex:1;"><div class="form-label">Bidding Window</div><div class="form-input">30 min</div></div>
+        <div style="flex:1;"><div class="form-label">Max Bidders</div><div class="form-input">2</div></div>
+      </div>
+
+      <div class="form-group"><div class="form-label">Min Trust Score</div><div class="form-input">70</div></div>
+
+      <div class="section-title">Assign To</div>
+      <div class="chip-row">
+        <div class="chip active" style="background:#059669; border-color:#10b981; color:#fff;">👧 Emma</div>
+        <div class="chip">🧒 Jake</div>
+        <div class="chip active" style="background:#059669; border-color:#10b981; color:#fff;">👤 Alex</div>
+      </div>
+
+      <div class="switch-row">
+        <span class="switch-label">Require photo evidence</span>
+        <div class="switch on"><div class="switch-knob"></div></div>
+      </div>
+      <div class="switch-row">
+        <span class="switch-label">Before & after photos</span>
+        <div class="switch on"><div class="switch-knob"></div></div>
+      </div>
+      <div class="switch-row">
+        <span class="switch-label">Allow bidding</span>
+        <div class="switch on"><div class="switch-knob"></div></div>
+      </div>
+      <div class="switch-row">
+        <span class="switch-label">Quality rating affects trust</span>
+        <div class="switch on"><div class="switch-knob"></div></div>
+      </div>
+
+      <div class="btn-primary">📋 Post Job to Marketplace</div>
+
+      <div style="height: 70px;"></div>
+      <div class="tab-bar">
+        <div class="tab-item"><div class="tab-icon">🏠</div>Home</div>
+        <div class="tab-item"><div class="tab-icon">📸</div>Review</div>
+        <div class="tab-item active"><div class="tab-icon">📋</div>Post</div>
+        <div class="tab-item"><div class="tab-icon">📊</div>Stats</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EVIDENCE REVIEW -->
+  <div class="phone screen" id="screen-evidence-review">
+    <div class="phone-notch"></div>
+    <div class="phone-screen" style="background: #0f0f23;">
+      <div class="app-header"><div><h2>Evidence Review</h2><div class="sub">3 submissions awaiting</div></div><span></span></div>
+
+      <div class="approval-card" style="border-color: #6366f1;">
+        <div style="display:flex; align-items:center; justify-content:space-between;">
+          <div><div class="approval-child">👧 Emma · Trust ★ 94</div><div class="approval-task">Clean Room</div></div>
+          <div class="countdown"><div class="countdown-dot"></div><div class="countdown-text">Review</div></div>
+        </div>
+        <div style="display:flex; gap:6px; margin-top:10px;">
+          <div class="evidence-thumb" style="flex:1; background: linear-gradient(135deg, #1e1b4b, #2d2b55);">
+            <div style="text-align:center;"><div style="font-size:24px;">📸</div><div style="font-size:10px; margin-top:4px;">BEFORE</div></div>
+          </div>
+          <div style="display:flex; align-items:center; color:#6366f1; font-size:18px;">→</div>
+          <div class="evidence-thumb" style="flex:1; background: linear-gradient(135deg, #065f46, #064e3b);">
+            <div style="text-align:center;"><div style="font-size:24px;">✅</div><div style="font-size:10px; margin-top:4px;">AFTER</div></div>
+          </div>
+        </div>
+        <div style="margin-top:10px;">
+          <div style="font-size:11px; color:#6b7280; margin-bottom:4px;">Quality Rating</div>
+          <div class="star-row">
+            <span class="star active">⭐</span><span class="star active">⭐</span><span class="star active">⭐</span><span class="star active">⭐</span><span class="star">⭐</span>
+          </div>
+        </div>
+        <div class="approval-btns">
+          <button class="btn-approve">✓ Approve · +$1.50</button>
+          <button class="btn-reject">✗ Redo</button>
+        </div>
+      </div>
+
+      <div class="approval-card">
+        <div style="display:flex; align-items:center; justify-content:space-between;">
+          <div><div class="approval-child">🧒 Jake · Trust ★ 71</div><div class="approval-task">Do Dishes</div></div>
+        </div>
+        <div style="display:flex; gap:6px; margin-top:10px;">
+          <div class="evidence-thumb" style="flex:1;">
+            <div style="text-align:center;"><div style="font-size:24px;">📸</div><div style="font-size:10px; margin-top:4px;">BEFORE</div></div>
+          </div>
+          <div style="display:flex; align-items:center; color:#4b5563; font-size:18px;">→</div>
+          <div class="evidence-thumb" style="flex:1;">
+            <div style="text-align:center;"><div style="font-size:24px;">📸</div><div style="font-size:10px; margin-top:4px;">AFTER</div></div>
+          </div>
+        </div>
+        <div style="margin-top:10px;">
+          <div style="font-size:11px; color:#6b7280; margin-bottom:4px;">Quality Rating</div>
+          <div class="star-row">
+            <span class="star active">⭐</span><span class="star active">⭐</span><span class="star">⭐</span><span class="star">⭐</span><span class="star">⭐</span>
+          </div>
+        </div>
+        <div class="approval-btns">
+          <button class="btn-approve">✓ Approve · +$1.50</button>
+          <button class="btn-reject">✗ Redo</button>
+        </div>
+      </div>
+
+      <div style="height: 70px;"></div>
+      <div class="tab-bar">
+        <div class="tab-item"><div class="tab-icon">🏠</div>Home</div>
+        <div class="tab-item active"><div class="tab-icon">📸</div>Review</div>
+        <div class="tab-item"><div class="tab-icon">📋</div>Post</div>
+        <div class="tab-item"><div class="tab-icon">📊</div>Stats</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WALLET -->
+  <div class="phone screen" id="screen-wallet">
+    <div class="phone-notch"></div>
+    <div class="phone-screen" style="background: #0f0f23;">
+      <div class="app-header"><h2>My Wallet</h2><span></span></div>
+
+      <div class="balance-card">
+        <div class="balance-label">Total Balance</div>
+        <div class="balance-value">$18.50</div>
+        <div class="balance-row">
+          <div class="balance-item"><div class="balance-item-label">Earned</div><div class="balance-item-val" style="color:#34d399;">+$25.00</div></div>
+          <div class="balance-divider"></div>
+          <div class="balance-item"><div class="balance-item-label">Tax Paid</div><div class="balance-item-val" style="color:#f59e0b;">-$2.50</div></div>
+          <div class="balance-divider"></div>
+          <div class="balance-item"><div class="balance-item-label">Spent</div><div class="balance-item-val" style="color:#f87171;">-$4.00</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:13px; font-weight:700;">🎯 Savings Goal: Headphones 🎧</span>
+          <span style="font-size:12px; color:#6b7280;">$18.50 / $50</span>
+        </div>
+        <div style="height:8px; background:#2d2b55; border-radius:4px; margin-top:8px;"><div style="height:8px; width:37%; background:linear-gradient(90deg,#6366f1,#a78bfa); border-radius:4px;"></div></div>
+        <div style="font-size:11px; color:#6b7280; margin-top:4px;">~8 more standard jobs to go!</div>
+      </div>
+
+      <div class="section-title">Recent Transactions</div>
+
+      <div class="tx-row">
+        <div class="tx-icon">💰</div>
+        <div class="tx-info"><div class="tx-desc">Clean Room — approved</div><div class="tx-time">Today 3:42 PM</div></div>
+        <div class="tx-amount tx-pos">+$1.50</div>
+      </div>
+      <div class="tx-row">
+        <div class="tx-icon">🏛️</div>
+        <div class="tx-info"><div class="tx-desc">Family Tax (10%)</div><div class="tx-time">Today 3:42 PM</div></div>
+        <div class="tx-amount tx-tax">-$0.15</div>
+      </div>
+      <div class="tx-row">
+        <div class="tx-icon">🏆</div>
+        <div class="tx-info"><div class="tx-desc">Won bid: Wash Car</div><div class="tx-time">Today 2:10 PM</div></div>
+        <div class="tx-amount" style="color:#a78bfa;">Bid: $2.00</div>
+      </div>
+      <div class="tx-row">
+        <div class="tx-icon">💰</div>
+        <div class="tx-info"><div class="tx-desc">Make Bed — auto-approved</div><div class="tx-time">Today 8:15 AM</div></div>
+        <div class="tx-amount tx-pos">+$0.50</div>
+      </div>
+      <div class="tx-row">
+        <div class="tx-icon">🛒</div>
+        <div class="tx-info"><div class="tx-desc">Screen Time: 30 min</div><div class="tx-time">Yesterday</div></div>
+        <div class="tx-amount tx-neg">-$2.50</div>
+      </div>
+
+      <div style="height: 70px;"></div>
+      <div class="tab-bar">
+        <div class="tab-item"><div class="tab-icon">🏪</div>Market</div>
+        <div class="tab-item active"><div class="tab-icon">💰</div>Wallet</div>
+        <div class="tab-item"><div class="tab-icon">⭐</div>Rep</div>
+        <div class="tab-item"><div class="tab-icon">🏆</div>Badges</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REPUTATION -->
+  <div class="phone screen" id="screen-reputation">
+    <div class="phone-notch"></div>
+    <div class="phone-screen" style="background: #0f0f23;">
+      <div class="app-header"><h2>My Reputation</h2><span></span></div>
+
+      <div style="text-align:center; padding: 24px 20px;">
+        <div style="font-size: 56px; font-weight: 900; background: linear-gradient(135deg, #34d399, #10b981); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">★ 94</div>
+        <div style="font-size: 14px; color: #6b7280; margin-top: 4px;">Trust Score</div>
+        <div style="font-size: 12px; color: #34d399; margin-top: 4px; font-weight: 600;">Excellent — Top earner access</div>
+      </div>
+
+      <div class="card">
+        <div style="font-size:13px; font-weight:700; margin-bottom:10px;">What affects your score</div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+          <span style="font-size:12px; color:#9ca3af;">On-time completion</span>
+          <span style="font-size:12px; font-weight:700; color:#34d399;">+32</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+          <span style="font-size:12px; color:#9ca3af;">Evidence quality</span>
+          <span style="font-size:12px; font-weight:700; color:#34d399;">+28</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+          <span style="font-size:12px; color:#9ca3af;">Streak bonus</span>
+          <span style="font-size:12px; font-weight:700; color:#34d399;">+20</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+          <span style="font-size:12px; color:#9ca3af;">Parent ratings</span>
+          <span style="font-size:12px; font-weight:700; color:#34d399;">+14</span>
+        </div>
+        <div style="display:flex; justify-content:space-between;">
+          <span style="font-size:12px; color:#9ca3af;">Rejected submissions</span>
+          <span style="font-size:12px; font-weight:700; color:#f87171;">0</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="font-size:13px; font-weight:700; margin-bottom:8px;">Unlocks at your level</div>
+        <div style="font-size:12px; color:#9ca3af; margin-bottom:6px;">✅ Access to Premium bounties</div>
+        <div style="font-size:12px; color:#9ca3af; margin-bottom:6px;">✅ Can bid on any job</div>
+        <div style="font-size:12px; color:#9ca3af; margin-bottom:6px;">✅ Later bedtime unlock</div>
+        <div style="font-size:12px; color:#4b5563;">🔒 Trust 95+ → Set own screen limits</div>
+      </div>
+
+      <div style="height: 70px;"></div>
+      <div class="tab-bar">
+        <div class="tab-item"><div class="tab-icon">🏪</div>Market</div>
+        <div class="tab-item"><div class="tab-icon">💰</div>Wallet</div>
+        <div class="tab-item active"><div class="tab-icon">⭐</div>Rep</div>
+        <div class="tab-item"><div class="tab-icon">🏆</div>Badges</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BADGES -->
+  <div class="phone screen" id="screen-badges">
+    <div class="phone-notch"></div>
+    <div class="phone-screen" style="background: #0f0f23;">
+      <div class="app-header"><h2>Achievements</h2><span></span></div>
+
+      <div style="background: linear-gradient(135deg, #4338ca, #6d28d9); margin:14px; border-radius:16px; padding:22px; text-align:center; position:relative; overflow:hidden;">
+        <div style="position:absolute; top:-30px; right:-20px; width:120px; height:120px; background:radial-gradient(circle, rgba(255,255,255,0.08), transparent); border-radius:50%;"></div>
+        <div style="font-size:44px;">⭐</div>
+        <div style="font-size:26px; font-weight:900; margin-top:6px;">Level 5</div>
+        <div style="font-size:14px; color:rgba(255,255,255,0.6); margin-top:3px;">Champion</div>
+        <div style="font-size:12px; color:rgba(255,255,255,0.4); margin-top:6px;">600 XP · Trust ★ 94</div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-value">🔥 8</div><div class="stat-label">Streak</div></div>
+        <div class="stat-card"><div class="stat-value">🏅 5</div><div class="stat-label">Badges</div></div>
+        <div class="stat-card"><div class="stat-value">⭐ 12</div><div class="stat-label">Best</div></div>
+      </div>
+
+      <div class="section-title">Skill Tree</div>
+
+      <div class="badge-row">
+        <div class="badge-icon">🧹</div>
+        <div class="badge-info"><div class="badge-name">Kitchen Assistant</div><div class="badge-desc">Complete 20 kitchen tasks</div></div>
+        <div class="badge-check">✅</div>
+      </div>
+      <div class="badge-row">
+        <div class="badge-icon">🔥</div>
+        <div class="badge-info"><div class="badge-name">7-Day Streak</div><div class="badge-desc">7 consecutive days</div></div>
+        <div class="badge-check">✅</div>
+      </div>
+      <div class="badge-row">
+        <div class="badge-icon">⭐</div>
+        <div class="badge-info"><div class="badge-name">First 100 XP</div><div class="badge-desc">Earn 100 XP total</div></div>
+        <div class="badge-check">✅</div>
+      </div>
+      <div class="badge-row">
+        <div class="badge-icon">📸</div>
+        <div class="badge-info"><div class="badge-name">Evidence Pro</div><div class="badge-desc">10 approved submissions in a row</div></div>
+        <div class="badge-check">✅</div>
+      </div>
+      <div class="badge-row">
+        <div class="badge-icon">💰</div>
+        <div class="badge-info"><div class="badge-name">Saver</div><div class="badge-desc">Save $10 without spending</div></div>
+        <div class="badge-check">✅</div>
+      </div>
+      <div class="badge-row locked">
+        <div class="badge-icon">🔒</div>
+        <div class="badge-info"><div class="badge-name">Bidding Master</div><div class="badge-desc">Win 10 premium bids</div></div>
+      </div>
+      <div class="badge-row locked">
+        <div class="badge-icon">🔒</div>
+        <div class="badge-info"><div class="badge-name">14-Day Streak</div><div class="badge-desc">14 consecutive days</div></div>
+      </div>
+      <div class="badge-row locked">
+        <div class="badge-icon">🔒</div>
+        <div class="badge-info"><div class="badge-name">Trusted Earner</div><div class="badge-desc">Maintain trust 95+ for 30 days</div></div>
+      </div>
+
+      <div style="height: 70px;"></div>
+      <div class="tab-bar">
+        <div class="tab-item"><div class="tab-icon">🏪</div>Market</div>
+        <div class="tab-item"><div class="tab-icon">💰</div>Wallet</div>
+        <div class="tab-item"><div class="tab-icon">⭐</div>Rep</div>
+        <div class="tab-item active"><div class="tab-icon">🏆</div>Badges</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN TIME SHOP -->
+  <div class="phone screen" id="screen-screen-time">
+    <div class="phone-notch"></div>
+    <div class="phone-screen" style="background: #0f0f23;">
+      <div class="app-header"><div><h2>Screen Time Shop</h2><div class="sub">Buy screen time with your earnings</div></div><span></span></div>
+
+      <div style="text-align:center; padding:20px;">
+        <div style="font-size:11px; color:#6b7280; text-transform:uppercase; letter-spacing:1px;">Available Balance</div>
+        <div style="font-size:36px; font-weight:900; color:#a78bfa; margin-top:4px;">$18.50</div>
+      </div>
+
+      <div class="card card-glow" style="border-color:#6366f1;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-size:15px; font-weight:700;">📱 30 Minutes</div>
+            <div style="font-size:11px; color:#6b7280; margin-top:2px;">TikTok, YouTube, Games</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:20px; font-weight:800; color:#a78bfa;">$2.50</div>
+            <div style="font-size:10px; color:#6b7280;">per 30 min</div>
+          </div>
+        </div>
+        <button class="bid-btn">Purchase</button>
+      </div>
+
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-size:15px; font-weight:700;">📱 1 Hour</div>
+            <div style="font-size:11px; color:#6b7280; margin-top:2px;">All apps</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:20px; font-weight:800; color:#a78bfa;">$4.00</div>
+            <div style="font-size:10px; color:#34d399;">save $1.00!</div>
+          </div>
+        </div>
+        <button class="bid-btn">Purchase</button>
+      </div>
+
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-size:15px; font-weight:700;">🎮 Gaming Session</div>
+            <div style="font-size:11px; color:#6b7280; margin-top:2px;">Xbox, PS5, Switch only</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:20px; font-weight:800; color:#a78bfa;">$3.00</div>
+            <div style="font-size:10px; color:#6b7280;">per hour</div>
+          </div>
+        </div>
+        <button class="bid-btn">Purchase</button>
+      </div>
+
+      <div class="card" style="border-color:#065f46;">
+        <div style="font-size:13px; font-weight:700; color:#34d399;">💡 Earn Free Time</div>
+        <div style="font-size:12px; color:#9ca3af; margin-top:4px;">Complete 30 min of exercise → earn 30 min free screen time</div>
+        <div style="font-size:12px; color:#9ca3af; margin-top:4px;">Complete homework → earn 15 min bonus</div>
+      </div>
+
+      <div class="section-title">📊 Today's Usage</div>
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+          <span style="font-size:12px; color:#9ca3af;">Purchased today</span>
+          <span style="font-size:12px; font-weight:700;">60 min</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+          <span style="font-size:12px; color:#9ca3af;">Used</span>
+          <span style="font-size:12px; font-weight:700;">35 min</span>
+        </div>
+        <div style="display:flex; justify-content:space-between;">
+          <span style="font-size:12px; color:#9ca3af;">Remaining</span>
+          <span style="font-size:12px; font-weight:700; color:#34d399;">25 min</span>
+        </div>
+      </div>
+
+      <div style="height: 20px;"></div>
+    </div>
+  </div>
+
+  <!-- CHILD PROGRESS -->
+  <div class="phone screen" id="screen-child-progress">
+    <div class="phone-notch"></div>
+    <div class="phone-screen" style="background: #0f0f23;">
+      <div class="app-header"><h2>Family Progress</h2><span></span></div>
+
+      <div style="padding:14px; display:flex; gap:8px;">
+        <div style="flex:1; padding:10px; background:#4338ca; border-radius:10px; text-align:center; font-size:12px; font-weight:700;">👧 Emma</div>
+        <div style="flex:1; padding:10px; background:#1a1a2e; border-radius:10px; text-align:center; font-size:12px; font-weight:700; color:#6b7280; border:1px solid #2d2b55;">🧒 Jake</div>
+        <div style="flex:1; padding:10px; background:#1a1a2e; border-radius:10px; text-align:center; font-size:12px; font-weight:700; color:#6b7280; border:1px solid #2d2b55;">👤 Alex</div>
+      </div>
+
+      <div class="level-card">
+        <div class="level-row">
+          <div class="level-emoji">⭐</div>
+          <div style="flex:1">
+            <div class="level-title">Level 5 — Champion</div>
+            <div class="level-sub">Trust ★ 94 · 600 XP</div>
+          </div>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:86%;"></div></div>
+        <div class="streak-row"><span>100 XP to Level 6</span><span>🔥 8 day streak</span></div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-value">82%</div><div class="stat-label">Completion</div></div>
+        <div class="stat-card"><div class="stat-value" style="color:#34d399;">$18.50</div><div class="stat-label">Earned</div></div>
+        <div class="stat-card"><div class="stat-value" style="color:#f59e0b;">$2.50</div><div class="stat-label">Tax Paid</div></div>
+      </div>
+
+      <div class="section-title">This Week</div>
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+          <span style="font-size:12px; color:#9ca3af;">Mon</span>
+          <div style="display:flex; gap:3px;">
+            <div style="width:16px; height:16px; border-radius:4px; background:#059669;"></div>
+            <div style="width:16px; height:16px; border-radius:4px; background:#059669;"></div>
+            <div style="width:16px; height:16px; border-radius:4px; background:#059669;"></div>
+            <div style="width:16px; height:16px; border-radius:4px; background:#059669;"></div>
+            <div style="width:16px; height:16px; border-radius:4px; background:#2d2b55;"></div>
+          </div>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+          <span style="font-size:12px; color:#9ca3af;">Tue</span>
+          <div style="display:flex; gap:3px;">
+            <div style="width:16px; height:16px; border-radius:4px; background:#059669;"></div>
+            <div style="width:16px; height:16px; border-radius:4px; background:#059669;"></div>
+            <div style="width:16px; height:16px; border-radius:4px; background:#059669;"></div>
+            <div style="width:16px; height:16px; border-radius:4px; background:#059669;"></div>
+            <div style="width:16px; height:16px; border-radius:4px; background:#059669;"></div>
+          </div>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+          <span style="font-size:12px; color:#9ca3af;">Wed</span>
+          <div style="display:flex; gap:3px;">
+            <div style="width:16px; height:16px; border-radius:4px; background:#059669;"></div>
+            <div style="width:16px; height:16px; border-radius:4px; background:#059669;"></div>
+            <div style="width:16px; height:16px; border-radius:4px; background:#2d2b55;"></div>
+            <div style="width:16px; height:16px; border-radius:4px; background:#2d2b55;"></div>
+            <div style="width:16px; height:16px; border-radius:4px; background:#2d2b55;"></div>
+          </div>
+        </div>
+        <div style="display:flex; justify-content:space-between;">
+          <span style="font-size:12px; color:#9ca3af;">Today</span>
+          <div style="display:flex; gap:3px;">
+            <div style="width:16px; height:16px; border-radius:4px; background:#059669;"></div>
+            <div style="width:16px; height:16px; border-radius:4px; background:#059669;"></div>
+            <div style="width:16px; height:16px; border-radius:4px; background:#059669;"></div>
+            <div style="width:16px; height:16px; border-radius:4px; background:#f59e0b;"></div>
+            <div style="width:16px; height:16px; border-radius:4px; background:#2d2b55;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title">Recent Achievements</div>
+      <div class="badge-row">
+        <div class="badge-icon">📸</div>
+        <div class="badge-info"><div class="badge-name">Evidence Pro</div><div class="badge-desc">Earned 2 days ago</div></div>
+        <div class="badge-check">✅</div>
+      </div>
+      <div class="badge-row">
+        <div class="badge-icon">🔥</div>
+        <div class="badge-info"><div class="badge-name">7-Day Streak</div><div class="badge-desc">Earned 5 days ago</div></div>
+        <div class="badge-check">✅</div>
+      </div>
+
+      <div style="height: 70px;"></div>
+      <div class="tab-bar">
+        <div class="tab-item"><div class="tab-icon">🏠</div>Home</div>
+        <div class="tab-item"><div class="tab-icon">📸</div>Review</div>
+        <div class="tab-item"><div class="tab-icon">📋</div>Post</div>
+        <div class="tab-item active"><div class="tab-icon">📊</div>Stats</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>

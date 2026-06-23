@@ -1,0 +1,114 @@
+# ============================================
+# FamilyOS — Docker Compose
+# ============================================
+# This file defines ALL your services (apps) and how they connect.
+# One command starts everything: "docker compose up"
+#
+# Services in this file:
+#   1. backend    — Your Node.js API (port 3001)
+#   2. postgres   — Production database (port 5432)
+#   3. redis      — Cache + rate limiting (port 6379)
+#
+# HOW IT WORKS:
+# - Docker creates a private network where all containers can talk to each other
+# - "backend" connects to "postgres" using hostname "postgres" (not localhost!)
+# - "backend" connects to "redis" using hostname "redis"
+# - Data persists in named volumes even when containers are destroyed
+
+version: '3.8'
+
+services:
+  # ============================================
+  # SERVICE 1: PostgreSQL Database
+  # ============================================
+  # This is your production database. Much faster and more capable than SQLite.
+  # Data is stored in a named volume so it survives container restarts.
+  postgres:
+    image: postgres:16-alpine    # PostgreSQL version 16, lightweight
+    container_name: familyos-db
+    restart: unless-stopped       # Auto-restart if it crashes
+    
+    environment:
+      POSTGRES_DB: familyos       # Database name
+      POSTGRES_USER: familyos     # Username
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-familyos_secure_2024}  # Password (from .env or default)
+    
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # Persist data here
+      - ./backend/src/db/init.sql:/docker-entrypoint-initdb.d/init.sql  # Auto-run on first start
+    
+    ports:
+      - "5432:5432"  # Expose to host (optional — for tools like pgAdmin)
+    
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U familyos"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================
+  # SERVICE 2: Redis (Cache + Rate Limiting)
+  # ============================================
+  # Redis is an in-memory database. Super fast.
+  # We use it for:
+  #   - Rate limiting (track how many requests per IP)
+  #   - Session caching
+  #   - Real-time data (future: live updates)
+  redis:
+    image: redis:7-alpine
+    container_name: familyos-redis
+    restart: unless-stopped
+    
+    volumes:
+      - redis_data:/data
+    
+    ports:
+      - "6379:6379"  # Optional: expose for debugging tools
+    
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================
+  # SERVICE 3: FamilyOS Backend API
+  # ============================================
+  # Your Node.js Express app.
+  # Depends on postgres and redis — Docker waits for them to be healthy.
+  backend:
+    build:
+      context: ./backend     # Where the Dockerfile is
+      dockerfile: Dockerfile
+    container_name: familyos-api
+    restart: unless-stopped
+    
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://familyos:${DB_PASSWORD:-familyos_secure_2024}@postgres:5432/familyos
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:-change-this-to-a-real-secret-in-production}
+    
+    ports:
+      - "3001:3001"  # Expose API to the outside world
+    
+    volumes:
+      - ./backend/data:/app/data  # SQLite fallback (dev mode)
+    
+    depends_on:
+      postgres:
+        condition: service_healthy  # Wait for postgres to be ready
+      redis:
+        condition: service_healthy  # Wait for redis to be ready
+
+# ============================================
+# VOLUMES (Persistent Storage)
+# ============================================
+# Named volumes survive "docker compose down".
+# Only deleted with "docker compose down -v" (the -v flag).
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local

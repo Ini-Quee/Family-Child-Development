@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FamilyOS v3 — Child Development Operating System</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #06060f; font-family: 'Inter', -apple-system, sans-serif; color: #fff; }
+
+  .top-bar { background: linear-gradient(135deg, #0c0c24, #141432); padding: 18px 32px; border-bottom: 1px solid #1e1e3a; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .top-bar h1 { font-size: 20px; font-weight: 800; background: linear-gradient(135deg, #a78bfa, #6366f1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .top-bar span { font-size: 11px; color: #4b5563; font-weight: 500; }
+
+  .nav { background: #0a0a1a; padding: 10px 32px; display: flex; gap: 5px; flex-wrap: wrap; position: sticky; top: 58px; z-index: 99; border-bottom: 1px solid #1a1a2e; }
+  .nav button { background: #12122a; color: #4b5563; border: 1px solid #1e1e3a; padding: 7px 11px; border-radius: 7px; cursor: pointer; font-size: 11px; font-weight: 600; transition: all 0.2s; font-family: inherit; }
+  .nav button:hover, .nav button.active { background: linear-gradient(135deg, #4338ca, #6d28d9); color: #fff; border-color: #6366f1; box-shadow: 0 0 12px rgba(99,102,241,0.25); }
+
+  .container { display: flex; justify-content: center; padding: 28px; gap: 28px; flex-wrap: wrap; }
+
+  .phone { width: 390px; min-height: 844px; background: #0c0c1a; border-radius: 44px; border: 2px solid #1e1e3a; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,0.5), 0 0 30px rgba(99,102,241,0.08); position: relative; }
+  .phone-notch { width: 126px; height: 34px; background: #000; border-radius: 0 0 20px 20px; margin: 0 auto; position: relative; z-index: 10; }
+  .phone-screen { padding: 0; min-height: 776px; overflow-y: auto; }
+  .phone-screen::-webkit-scrollbar { width: 0; }
+
+  .app-header { background: linear-gradient(135deg, #3b1d8e, #5b21b6); padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; }
+  .app-header h2 { font-size: 16px; font-weight: 800; letter-spacing: -0.3px; }
+  .app-header .sub { font-size: 10px; color: rgba(255,255,255,0.5); }
+
+  .card { background: #12122a; margin: 8px 12px; border-radius: 12px; padding: 14px; border: 1px solid #1e1e3a; }
+  .card-glow { box-shadow: 0 0 16px rgba(99,102,241,0.06); }
+
+  .stats-row { display: flex; gap: 6px; padding: 0 12px; margin-top: 8px; }
+  .stat-card { flex: 1; background: #12122a; border-radius: 10px; padding: 10px; text-align: center; border: 1px solid #1e1e3a; }
+  .stat-value { font-size: 17px; font-weight: 800; }
+  .stat-label { font-size: 9px; color: #4b5563; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.4px; }
+
+  .section-title { font-size: 11px; font-weight: 700; padding: 12px 16px 5px; color: #818cf8; text-transform: uppercase; letter-spacing: 0.8px; }
+
+  .greeting { padding: 12px 16px 0; }
+  .greeting h2 { font-size: 18px; font-weight: 800; letter-spacing: -0.3px; }
+  .greeting p { font-size: 11px; color: #4b5563; margin-top: 2px; }
+
+  .level-card { background: linear-gradient(135deg, #3b1d8e, #5b21b6, #7c3aed); margin: 8px 12px; border-radius: 14px; padding: 16px; position: relative; overflow: hidden; }
+  .level-card::before { content: ''; position: absolute; top: -40%; right: -25%; width: 160px; height: 160px; background: radial-gradient(circle, rgba(255,255,255,0.06), transparent); border-radius: 50%; }
+  .level-row { display: flex; align-items: center; gap: 10px; position: relative; }
+  .level-emoji { font-size: 28px; }
+  .level-title { font-size: 15px; font-weight: 800; }
+  .level-sub { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 1px; }
+  .progress-bar { height: 5px; background: rgba(255,255,255,0.12); border-radius: 3px; margin-top: 10px; position: relative; }
+  .progress-fill { height: 5px; background: linear-gradient(90deg, #a78bfa, #c4b5fd); border-radius: 3px; }
+  .streak-row { display: flex; justify-content: space-between; margin-top: 8px; font-size: 11px; color: rgba(255,255,255,0.6); font-weight: 600; position: relative; }
+
+  .child-card { background: #12122a; margin: 6px 12px; border-radius: 12px; padding: 12px; border: 1px solid #1e1e3a; }
+  .child-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .child-avatar { font-size: 24px; }
+  .child-name { font-size: 14px; font-weight: 700; }
+  .child-level { font-size: 10px; color: #4b5563; margin-top: 1px; }
+  .trust-badge { display: inline-flex; align-items: center; gap: 3px; padding: 2px 6px; border-radius: 5px; font-size: 9px; font-weight: 700; }
+  .trust-high { background: #065f46; color: #34d399; }
+  .trust-med { background: #92400e; color: #fbbf24; }
+  .rep-meter { height: 4px; background: #1e1e3a; border-radius: 2px; overflow: hidden; }
+  .rep-fill { height: 4px; border-radius: 2px; }
+  .rep-high { background: linear-gradient(90deg, #059669, #34d399); }
+  .rep-med { background: linear-gradient(90deg, #d97706, #fbbf24); }
+  .child-stats { display: flex; justify-content: space-around; border-top: 1px solid #1e1e3a; padding-top: 8px; margin-top: 8px; }
+  .child-stat { text-align: center; }
+  .child-stat-val { font-size: 13px; font-weight: 700; }
+  .child-stat-lbl { font-size: 8px; color: #4b5563; margin-top: 1px; text-transform: uppercase; }
+
+  .market-card { background: linear-gradient(135deg, #12122a, #1a1040); margin: 6px 12px; border-radius: 12px; padding: 12px; border: 1px solid #2d2266; position: relative; overflow: hidden; }
+  .market-tag { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
+  .tag-premium { background: #7c3aed; color: #fff; }
+  .tag-sos { background: #dc2626; color: #fff; animation: pulse 2s infinite; }
+  .tag-standard { background: #2d2b55; color: #818cf8; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+  .market-title { font-size: 13px; font-weight: 700; }
+  .market-reward { font-size: 17px; font-weight: 800; color: #a78bfa; margin-top: 3px; }
+  .market-meta { font-size: 10px; color: #4b5563; margin-top: 3px; display: flex; gap: 8px; }
+  .countdown { display: inline-flex; align-items: center; gap: 3px; background: #12122a; padding: 2px 6px; border-radius: 5px; border: 1px solid #92400e; }
+  .countdown-text { font-size: 10px; font-weight: 700; color: #f59e0b; }
+  .countdown-dot { width: 5px; height: 5px; border-radius: 3px; background: #f59e0b; animation: pulse 1s infinite; }
+  .bid-btn { background: linear-gradient(135deg, #6366f1, #7c3aed); color: #fff; border: none; border-radius: 8px; padding: 8px; font-size: 12px; font-weight: 700; width: 100%; margin-top: 8px; cursor: pointer; font-family: inherit; }
+  .bid-btn:disabled { background: #2d2b55; color: #4b5563; }
+
+  .approval-card { background: #12122a; margin: 6px 12px; border-radius: 12px; padding: 12px; border: 1px solid #1e1e3a; }
+  .approval-child { font-size: 10px; font-weight: 600; color: #a78bfa; }
+  .approval-task { font-size: 14px; font-weight: 700; margin-top: 2px; }
+  .approval-time { font-size: 10px; color: #4b5563; margin-top: 2px; }
+  .evidence-thumb { width: 100%; height: 90px; background: #1e1e3a; border-radius: 8px; margin-top: 8px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #4b5563; }
+  .star-row { display: flex; gap: 3px; margin-top: 8px; }
+  .star { font-size: 16px; cursor: pointer; opacity: 0.2; }
+  .star.active { opacity: 1; }
+  .approval-btns { display: flex; gap: 6px; margin-top: 8px; }
+  .btn-approve { flex: 1; background: linear-gradient(135deg, #059669, #10b981); color: #fff; border: none; border-radius: 8px; padding: 9px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .btn-reject { background: #1a1a2e; border: 1px solid #2d2b55; color: #f87171; border-radius: 8px; padding: 9px 14px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; }
+
+  .balance-card { background: linear-gradient(135deg, #3b1d8e, #5b21b6); margin: 12px; border-radius: 14px; padding: 18px; text-align: center; position: relative; overflow: hidden; }
+  .balance-card::before { content: '💰'; position: absolute; top: 8px; right: 16px; font-size: 48px; opacity: 0.08; }
+  .balance-label { font-size: 10px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px; }
+  .balance-value { font-size: 36px; font-weight: 900; margin-top: 3px; letter-spacing: -1px; }
+  .balance-row { display: flex; margin-top: 14px; }
+  .balance-item { flex: 1; text-align: center; }
+  .balance-divider { width: 1px; background: rgba(255,255,255,0.12); }
+  .balance-item-label { font-size: 9px; color: rgba(255,255,255,0.35); text-transform: uppercase; }
+  .balance-item-val { font-size: 13px; font-weight: 700; margin-top: 2px; }
+
+  .tx-row { display: flex; align-items: center; background: #12122a; margin: 3px 12px; border-radius: 8px; padding: 9px 11px; border: 1px solid #1e1e3a; }
+  .tx-icon { font-size: 16px; margin-right: 8px; width: 20px; text-align: center; }
+  .tx-info { flex: 1; }
+  .tx-desc { font-size: 11px; font-weight: 600; }
+  .tx-time { font-size: 9px; color: #4b5563; margin-top: 1px; }
+  .tx-amount { font-size: 13px; font-weight: 700; }
+  .tx-pos { color: #34d399; }
+  .tx-neg { color: #f87171; }
+  .tx-tax { color: #f59e0b; }
+
+  .badge-row { display: flex; align-items: center; background: #12122a; margin: 4px 12px; border-radius: 10px; padding: 10px 12px; border: 1px solid #1e1e3a; }
+  .badge-row.locked { opacity: 0.3; }
+  .badge-icon { font-size: 20px; margin-right: 10px; width: 24px; text-align: center; }
+  .badge-info { flex: 1; }
+  .badge-name { font-size: 12px; font-weight: 700; }
+  .badge-desc { font-size: 9px; color: #4b5563; margin-top: 1px; }
+  .badge-check { font-size: 14px; }
+
+  .keypad { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; padding: 0 36px; margin-top: 18px; }
+  .key-btn { width: 62px; height: 62px; border-radius: 31px; background: #12122a; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 600; cursor: pointer; border: 1px solid #1e1e3a; }
+  .key-btn.empty { background: transparent; border: none; }
+  .pin-dots { display: flex; justify-content: center; gap: 14px; margin: 18px 0; }
+  .pin-dot { width: 14px; height: 14px; border-radius: 7px; border: 2px solid #6366f1; }
+  .pin-dot.filled { background: #6366f1; box-shadow: 0 0 6px rgba(99,102,241,0.4); }
+
+  .child-grid { display: flex; justify-content: center; gap: 12px; padding: 18px; flex-wrap: wrap; }
+  .child-select-card { background: #12122a; border-radius: 14px; padding: 18px; text-align: center; width: 110px; cursor: pointer; border: 2px solid #1e1e3a; transition: all 0.2s; }
+  .child-select-card:hover { border-color: #6366f1; box-shadow: 0 0 16px rgba(99,102,241,0.15); transform: translateY(-2px); }
+  .child-select-avatar { font-size: 40px; }
+  .child-select-name { font-size: 14px; font-weight: 700; margin-top: 6px; }
+  .child-select-age { font-size: 10px; color: #4b5563; margin-top: 2px; }
+
+  .tab-bar { display: flex; background: #08080f; border-top: 1px solid #12122a; padding: 6px 0 12px; position: absolute; bottom: 0; left: 0; right: 0; }
+  .tab-item { flex: 1; text-align: center; font-size: 8px; color: #374151; cursor: pointer; font-weight: 600; text-transform: uppercase; letter-spacing: 0.2px; }
+  .tab-item.active { color: #a78bfa; }
+  .tab-icon { font-size: 16px; margin-bottom: 1px; }
+
+  .form-group { padding: 0 12px; margin-top: 10px; }
+  .form-label { font-size: 10px; font-weight: 600; color: #4b5563; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.3px; }
+  .form-input { background: #12122a; border: 1px solid #1e1e3a; border-radius: 8px; padding: 9px 11px; color: #d1d5db; font-size: 12px; width: 100%; font-family: inherit; }
+  .chip-row { display: flex; gap: 5px; flex-wrap: wrap; padding: 0 12px; margin-top: 6px; }
+  .chip { padding: 5px 10px; border-radius: 7px; background: #12122a; border: 1px solid #1e1e3a; font-size: 10px; color: #4b5563; font-weight: 600; cursor: pointer; }
+  .chip.active { background: #3b1d8e; border-color: #6366f1; color: #fff; }
+  .label-row { display: flex; gap: 5px; padding: 0 12px; margin-top: 8px; }
+  .label-btn { flex: 1; padding: 7px; border-radius: 8px; background: #12122a; border: 1px solid #1e1e3a; text-align: center; font-size: 10px; color: #4b5563; cursor: pointer; font-weight: 600; }
+  .label-btn.active { background: #3b1d8e; border-color: #6366f1; color: #fff; }
+  .switch-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid #12122a; }
+  .switch-label { font-size: 12px; color: #9ca3af; }
+  .switch { width: 36px; height: 20px; background: #2d2b55; border-radius: 10px; position: relative; cursor: pointer; }
+  .switch.on { background: #6366f1; }
+  .switch-knob { width: 16px; height: 16px; background: #fff; border-radius: 8px; position: absolute; top: 2px; left: 2px; }
+  .switch.on .switch-knob { left: 18px; }
+  .btn-primary { background: linear-gradient(135deg, #6366f1, #7c3aed); color: #fff; border: none; border-radius: 10px; padding: 11px; font-size: 13px; font-weight: 700; width: calc(100% - 24px); margin: 14px 12px; cursor: pointer; text-align: center; font-family: inherit; }
+  .btn-secondary { background: linear-gradient(135deg, #059669, #10b981); color: #fff; border: none; border-radius: 8px; padding: 9px; font-size: 12px; font-weight: 700; margin: 8px 12px; cursor: pointer; text-align: center; font-family: inherit; }
+
+  .economy-bar { display: flex; background: #12122a; margin: 8px 12px; border-radius: 10px; border: 1px solid #1e1e3a; overflow: hidden; }
+  .economy-seg { flex: 1; padding: 8px; text-align: center; border-right: 1px solid #1e1e3a; }
+  .economy-seg:last-child { border-right: none; }
+  .economy-val { font-size: 14px; font-weight: 800; }
+  .economy-lbl { font-size: 8px; color: #4b5563; margin-top: 2px; text-transform: uppercase; }
+
+  .screen { display: none; }
+  .screen.active { display: block; }
+  .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 700; }
+  .badge-easy { background: #065f46; color: #34d399; }
+  .badge-medium { background: #92400e; color: #fbbf24; }
+  .badge-hard { background: #7f1d1d; color: #f87171; }
+
+  /* Chat bubbles */
+  .chat-bubble { max-width: 80%; padding: 10px 14px; border-radius: 14px; margin: 6px 12px; font-size: 12px; line-height: 1.5; }
+  .chat-ai { background: #1e1b4b; border: 1px solid #3730a3; color: #c4b5fd; border-bottom-left-radius: 4px; }
+  .chat-user { background: #3b1d8e; color: #fff; border-bottom-right-radius: 4px; margin-left: auto; }
+  .chat-name { font-size: 9px; font-weight: 700; color: #6366f1; margin-bottom: 3px; }
+
+  /* Survey option */
+  .survey-option { background: #12122a; margin: 4px 12px; border-radius: 10px; padding: 10px 12px; border: 1px solid #1e1e3a; display: flex; align-items: center; gap: 10px; cursor: pointer; }
+  .survey-option.selected { border-color: #6366f1; background: #1a1040; }
+  .survey-radio { width: 16px; height: 16px; border-radius: 8px; border: 2px solid #4b5563; }
+  .survey-option.selected .survey-radio { border-color: #a78bfa; background: #a78bfa; }
+  .survey-text { font-size: 12px; font-weight: 600; flex: 1; }
+  .survey-icon { font-size: 18px; }
+
+  /* Progress ring */
+  .progress-ring { width: 60px; height: 60px; border-radius: 50%; background: conic-gradient(#34d399 0deg, #34d399 280deg, #1e1e3a 280deg); display: flex; align-items: center; justify-content: center; position: relative; }
+  .progress-ring-inner { width: 48px; height: 48px; border-radius: 50%; background: #0c0c1a; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; }
+
+  /* Subject row */
+  .subject-row { display: flex; align-items: center; background: #12122a; margin: 4px 12px; border-radius: 10px; padding: 10px 12px; border: 1px solid #1e1e3a; }
+  .subject-icon { font-size: 20px; margin-right: 10px; }
+  .subject-info { flex: 1; }
+  .subject-name { font-size: 13px; font-weight: 700; }
+  .subject-grade { font-size: 11px; color: #4b5563; margin-top: 1px; }
+  .subject-score { font-size: 16px; font-weight: 800; }
+  .subject-trend { font-size: 10px; margin-top: 1px; }
+  .trend-up { color: #34d399; }
+  .trend-down { color: #f87171; }
+
+  /* Insight card */
+  .insight-card { background: linear-gradient(135deg, #12122a, #1a1040); margin: 6px 12px; border-radius: 12px; padding: 12px; border: 1px solid #2d2266; }
+  .insight-icon { font-size: 18px; margin-bottom: 6px; }
+  .insight-text { font-size: 12px; color: #c4b5fd; line-height: 1.5; }
+  .insight-action { display: inline-block; margin-top: 8px; padding: 5px 10px; background: #3b1d8e; border-radius: 6px; font-size: 10px; font-weight: 700; color: #fff; cursor: pointer; }
+
+  /* Mood emoji */
+  .mood-row { display: flex; justify-content: center; gap: 12px; padding: 12px; }
+  .mood-btn { font-size: 28px; cursor: pointer; opacity: 0.4; transition: all 0.2s; }
+  .mood-btn.active { opacity: 1; transform: scale(1.2); }
+
+  /* Health card */
+  .health-card { background: #12122a; margin: 6px 12px; border-radius: 12px; padding: 12px; border: 1px solid #1e1e3a; }
+  .health-row { display: flex; align-items: center; gap: 8px; }
+  .health-icon { font-size: 24px; }
+  .health-info { flex: 1; }
+  .health-label { font-size: 10px; color: #4b5563; text-transform: uppercase; }
+  .health-value { font-size: 16px; font-weight: 800; margin-top: 1px; }
+  .health-bar { height: 6px; background: #1e1e3a; border-radius: 3px; margin-top: 6px; }
+  .health-fill { height: 6px; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div>
+    <h1>FamilyOS v3 — Child Development OS</h1>
+    <span>18 screens · Profile · AI Coach · Academics · Athlete · Insights</span>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="active" onclick="showScreen('profile-survey')">Profile Survey</button>
+  <button onclick="showScreen('parent-dash')">Parent Dashboard</button>
+  <button onclick="showScreen('child-marketplace')">Marketplace</button>
+  <button onclick="showScreen('ai-coach')">AI Coach</button>
+  <button onclick="showScreen('academics')">Academics</button>
+  <button onclick="showScreen('athlete')">Athlete Mode</button>
+  <button onclick="showScreen('mood-check')">Mood Check-in</button>
+  <button onclick="showScreen('parent-insights')">Parent Insights</button>
+  <button onclick="showScreen('evidence-review')">Evidence Review</button>
+  <button onclick="showScreen('wallet')">Wallet</button>
+  <button onclick="showScreen('screen-shop')">Screen Time</button>
+  <button onclick="showScreen('reputation')">Reputation</button>
+  <button onclick="showScreen('badges')">Badges</button>
+</div>
+
+<div class="container">
+
+  <!-- CHILD PROFILE SURVEY -->
+  <div class="phone screen active" id="screen-profile-survey">
+    <div class="phone-notch"></div>
+    <div class="phone-screen" style="background: #0c0c1a;">
+      <div class="app-header"><div><h2>Welcome, Emma!</h2><div class="sub">Step 1 of 4 — Let's get to know you</div></div><span></span></div>
+
+      <div style="padding: 12px 12px 0;">
+        <div style="display:flex; gap:4px;">
+          <div style="flex:1; height:4px; background:#6366f1; border-radius:2px;"></div>
+          <div style="flex:1; height:4px; background:#1e1e3a; border-radius:2px;"></div>
+          <div style="flex:1; height:4px; background:#1e1e3a; border-radius:2px;"></div>
+          <div style="flex:1; height:4px; background:#1e1e3a; border-radius:2px;"></div>
+        </div>
+      </div>
+
+      <div style="padding: 16px; text-align:center;">
+        <div style="font-size:40px;">🧠</div>
+        <div style="font-size:16px; font-weight:800; margin-top:8px;">How do you learn best?</div>
+        <div style="font-size:11px; color:#4b5563; margin-top:4px;">This helps us show you tasks in the way you like</div>
+      </div>
+
+      <div class="survey-option selected">
+        <div class="survey-icon">👁️</div>
+        <div class="survey-text">Visual — I like seeing pictures, charts, and colors</div>
+        <div class="survey-radio"></div>
+      </div>
+      <div class="survey-option">
+        <div class="survey-icon">👂</div>
+        <div class="survey-text">Auditory — I like listening and talking things through</div>
+        <div class="survey-radio"></div>
+      </div>
+      <div class="survey-option">
+        <div class="survey-icon">📖</div>
+        <div class="survey-text">Reading — I like lists, instructions, and written words</div>
+        <div class="survey-radio"></div>
+      </div>
+      <div class="survey-option">
+        <div class="survey-icon">🏃</div>
+        <div class="survey-text">Kinesthetic — I like doing things with my hands</div>
+        <div class="survey-radio"></div>
+      </div>
+
+      <div class="section-title">Any of these describe you?</div>
+      <div class="chip-row">
+        <div class="chip">ADHD</div>
+        <div class="chip">Autism</div>
+        <div class="chip">Dyslexia</div>
+        <div class="chip">Anxiety</div>
+        <div class="chip">None</div>
+      </div>
+
+      <div class="section-title">What's your style?</div>
+      <div class="chip-row">
+        <div class="chip active">🏆 Competitive</div>
+        <div class="chip">🎨 Creative</div>
+        <div class="chip">👥 Social</div>
+        <div class="chip">🧘 Independent</div>
+      </div>
+
+      <div class="section-title">What do you want most?</div>
+      <div class="chip-row">
+        <div class="chip active">💰 Earn money</div>
+        <div class="chip">📱 Screen time</div>
+        <div class="chip">📚 Better grades</div>
+        <div class="chip">🏆 Be the best</div>
+      </div>
+
+      <div class="btn-primary">Continue →</div>
+    </div>
+  </div>
+
+  <!-- PARENT DASHBOARD (Enhanced) -->
+  <div class="phone screen" id="screen-parent-dash">
+    <div class="phone-notch"></div>
+    <div class="phone-screen" style="background: #0c0c1a;">
+      <div class="app-header"><div><h2>FamilyOS</h2><div class="sub">Governor Dashboard</div></div><span style="font-size:11px; color:rgba(255,255,255,0.4);">Logout</span></div>
+      <div class="greeting"><h2>Hi, Sarah 👋</h2><p>Tuesday, June 24 · 3 children active</p></div>
+
+      <div class="economy-bar">
+        <div class="economy-seg"><div class="economy-val" style="color:#a78bfa;">$47.20</div><div class="economy-lbl">Circulating</div></div>
+        <div class="economy-seg"><div class="economy-val" style="color:#f59e0b;">$6.30</div><div class="economy-lbl">Tax Pool</div></div>
+        <div class="economy-seg"><div class="economy-val" style="color:#34d399;">82%</div><div class="economy-lbl">Tasks</div></div>
+        <div class="economy-seg"><div class="economy-val" style="color:#818cf8;">3</div><div class="economy-lbl">Review</div></div>
+      </div>
+
+      <div class="section-title">Children Overview</div>
+
+      <div class="child-card">
+        <div class="child-header">
+          <div class="child-avatar">👧</div>
+          <div style="flex:1">
+            <div style="display:flex; align-items:center; gap:5px;"><span class="child-name">Emma</span><span class="trust-badge trust-high">★ 94</span></div>
+            <div class="child-level">Lvl 5 · 600 XP · 🔥 8 · 😊 Good mood</div>
+          </div>
+          <div style="text-align:right"><div style="font-size:14px; font-weight:800; color:#a78bfa;">$18.50</div><div style="font-size:9px; color:#4b5563;">earned</div></div>
+        </div>
+        <div class="rep-meter"><div class="rep-fill rep-high" style="width:94%;"></div></div>
+        <div class="child-stats">
+          <div class="child-stat"><div class="child-stat-val">5</div><div class="child-stat-lbl">Tasks</div></div>
+          <div class="child-stat"><div class="child-stat-val" style="color:#34d399;">4</div><div class="child-stat-lbl">Done</div></div>
+          <div class="child-stat"><div class="child-stat-val" style="color:#818cf8;">B+</div><div class="child-stat-lbl">Grades</div></div>
+          <div class="child-stat"><div class="child-stat-val" style="color:#f59e0b;">🏃</div><div class="child-stat-lbl">Active</div></div>
+        </div>
+      </div>
+
+      <div class="child-card">
+        <div class="child-header">
+          <div class="child-avatar">🧒</div>
+          <div style="flex:1">
+            <div style="display:flex; align-items:center; gap:5px;"><span class="child-name">Jake</span><span class="trust-badge trust-med">★ 71</span></div>
+            <div class="child-level">Lvl 3 · 250 XP · 🔥 3 · 😐 Okay mood</div>
+          </div>
+          <div style="text-align:right"><div style="font-size:14px; font-weight:800; color:#a78bfa;">$12.00</div><div style="font-size:9px; color:#4b5563;">earned</div></div>
+        </div>
+        <div class="rep-meter"><div class="rep-fill rep-med" style="width:71%;"></div></div>
+        <div class="child-stats">
+          <div class="child-stat"><div class="child-stat-val">4</div><div class="child-stat-lbl">Tasks</div></div>
+          <div class="child-stat"><div class="child-stat-val" style="color:#34d399;">2</div><div class="child-stat-lbl">Done</div></div>
+          <div class="child-stat"><div class="child-stat-val" style="color:#f87171;">C</div><div class="child-stat-lbl">Grades</div></div>
+          <div class="child-stat"><div class="child-stat-val" style="color:#f59e0b;">⚽</div><div class="child-stat-lbl">Sports</div></div>
+        </div>
+      </div>
+
+      <div class="child-card">
+        <div class="child-header">
+          <div class="child-avatar">👤</div>
+          <div style="flex:1">
+            <div style="display:flex; align-items:center; gap:5px;"><span class="child-name">Alex</span><span class="trust-badge trust-high">★ 97</span></div>
+            <div class="child-level">Lvl 8 · 1500 XP · 🔥 22 · 😊 Great mood</div>
+          </div>
+          <div style="text-align:right"><div style="font-size:14px; font-weight:800; color:#a78bfa;">$45.00</div><div style="font-size:9px; color:#4b5563;">earned</div></div>
+        </div>
+        <div class="rep-meter"><div class="rep-fill rep-high" style="width:97%;"></div></div>
+        <div class="child-stats">
+          <div class="child-stat"><div class="child-stat-val">3</div><div class="child-stat-lbl">Tasks</div></div>
+          <div class="child-stat"><div class="child-stat-val" style="color:#34d399;">3</div><div class="child-stat-lbl">Done</div></div>
+          <div class="child-stat"><div class="child-stat-val" style="color:#34d399;">A-</div><div class="child-stat-lbl">Grades</div></div>
+          <div class="child-stat"><div class="child-stat-val" style="color:#f59e0b;">🏋️</div><div class="child-stat-lbl">Fitness</div></div>
+        </div>
+      </div>
+
+      <div class="section-title">🤖 AI Insight</div>
+      <div class="insight-card">
+        <div class="insight-icon">📉</div>
+        <div class="insight-text">Jake's math grade dropped from B to C this week. His screen time increased 40%. Consider an Academic SOS bounty — I can create one for 15 coins.</div>
+        <div class="insight-action">Create Bounty</div>
+      </div>
+
+      <div class="insight-card">
+        <div class="insight-icon">💡</div>
+        <div class="insight-text">Emma completes 90% more chores when rewards are posted within 10 minutes. She responds best to visual progress bars.</div>
+      </div>
+
+      <div style="height:60px;"></div>
+      <div class="tab-bar">
+        <div class="tab-item active"><div class="tab-icon">🏠</div>Home</div>
+        <div class="tab-item"><div class="tab-icon">📸</div>Review</div>
+        <div class="tab-item"><div class="tab-icon">📋</div>Post</div>
+        <div class="tab-item"><div class="tab-icon">📊</div>Insights</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHILD MARKETPLACE -->
+  <div class="phone screen" id="screen-child-marketplace">
+    <div class="phone-notch"></div>
+    <div class="phone-screen" style="background: #0c0c1a;">
+      <div class="app-header"><div><h2>Marketplace</h2><div class="sub">Hey, Emma! 4 jobs available</div></div><div style="text-align:right"><div style="font-size:14px; font-weight:800;">$18.50</div><div style="font-size:9px; color:rgba(255,255,255,0.4);">balance</div></div></div>
+
+      <div class="level-card">
+        <div class="level-row"><div class="level-emoji">⭐</div><div style="flex:1"><div class="level-title">Level 5 — Champion</div><div class="level-sub">Trust ★ 94 · 🔥 8 streak</div></div></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:60%;"></div></div>
+        <div class="streak-row"><span>600 / 700 XP</span><span>💰 $18.50</span></div>
+      </div>
+
+      <div class="section-title">🔥 Premium Bounties</div>
+      <div class="market-card" style="border-color:#7c3aed;">
+        <div class="market-tag tag-premium">Premium</div>
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <div><div class="market-title">Wash the Car</div><div class="market-reward">$8.00</div></div>
+          <div class="countdown"><div class="countdown-dot"></div><div class="countdown-text">18:42</div></div>
+        </div>
+        <div class="market-meta"><span>⭐ Min trust: 70</span><span>📸 Evidence</span></div>
+        <button class="bid-btn">Place Bid — $2.00</button>
+      </div>
+
+      <div class="market-card" style="border-color:#dc2626;">
+        <div class="market-tag tag-sos">SOS</div>
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <div><div class="market-title">Walk the Dog NOW</div><div class="market-reward">$5.00</div></div>
+          <div class="countdown"><div class="countdown-dot"></div><div class="countdown-text">04:12</div></div>
+        </div>
+        <button class="bid-btn" style="background:linear-gradient(135deg,#dc2626,#ef4444);">Accept Now</button>
+      </div>
+
+      <div class="section-title">📋 Standard Jobs</div>
+      <div class="market-card"><div class="market-tag tag-standard">Standard</div><div class="market-title">Make Bed</div><div class="market-reward">$0.50 · +5 XP</div><button class="bid-btn">Mark Done</button></div>
+      <div class="market-card"><div class="market-tag tag-standard">Standard</div><div class="market-title">Brush Teeth</div><div class="market-reward">$0.00 · +5 XP</div><button class="bid-btn">Mark Done</button></div>
+
+      <div class="section-title">📚 Study Bounties</div>
+      <div class="market-card" style="border-color:#2563eb;">
+        <div class="market-tag" style="background:#2563eb; color:#fff;">Academic</div>
+        <div class="market-title">Math Review — 30 min</div>
+        <div class="market-reward">$3.00 · +20 XP</div>
+        <div class="market-meta"><span>📖 Study session</span><span>⏱️ Timer required</span></div>
+        <button class="bid-btn" style="background:linear-gradient(135deg,#2563eb,#3b82f6);">Start Session</button>
+      </div>
+
+      <div style="height:60px;"></div>
+      <div class="tab-bar">
+        <div class="tab-item active"><div class="tab-icon">🏪</div>Market</div>
+        <div class="tab-item"><div class="tab-icon">💰</div>Wallet</div>
+        <div class="tab-item"><div class="tab-icon">📚</div>Study</div>
+        <div class="tab-item"><div class="tab-icon">🏆</div>Badges</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI COACH -->
+  <div class="phone screen" id="screen-ai-coach">
+    <div class="phone-notch"></div>
+    <div class="phone-screen" style="background: #0c0c1a;">
+      <div class="app-header"><div><h2>Your Coach</h2><div class="sub">Wise Mentor mode · Private</div></div><span style="font-size:10px; color:rgba(255,255,255,0.4);">🔒</span></div>
+
+      <div style="text-align:center; padding:14px;">
+        <div style="width:48px; height:48px; border-radius:24px; background:linear-gradient(135deg,#6366f1,#7c3aed); margin:0 auto; display:flex; align-items:center; justify-content:center; font-size:24px;">🧠</div>
+        <div style="font-size:13px; font-weight:700; margin-top:6px;">Coach Lumi</div>
+        <div style="font-size:10px; color:#4b5563;">Your private mentor · What you say stays here</div>
+      </div>
+
+      <div class="chat-bubble chat-ai">
+        <div class="chat-name">Coach Lumi</div>
+        Hey Emma! I noticed you crushed 4 out of 5 tasks yesterday. That's 80% — your best day this week! 🎉 What do you think made yesterday different?
+      </div>
+
+      <div class="chat-bubble chat-user">
+        I dunno. I guess I just started earlier? Mom didn't have to remind me.
+      </div>
+
+      <div class="chat-bubble chat-ai">
+        <div class="chat-name">Coach Lumi</div>
+        That's a huge insight. When you start on your own terms, you feel more in control — and you get more done. That's called intrinsic motivation. It's like a superpower. 💪<br><br>
+        Want to try starting before 4pm again today? I'll remind you at 3:30 — no pressure, just a nudge.
+      </div>
+
+      <div class="chat-bubble chat-user">
+        Yeah that works. Can you also remind me about the car wash bounty? I really want to win that bid.
+      </div>
+
+      <div class="chat-bubble chat-ai">
+        <div class="chat-name">Coach Lumi</div>
+        Absolutely! The car wash bounty closes in 18 hours. Your trust score of 94 puts you in a strong position. Pro tip: your bid of $2 is competitive — Jake hasn't bid yet. 🏎️<br><br>
+        By the way, you're only $11.50 away from your headphones goal. Want me to show you the fastest path to get there?
+      </div>
+
+      <div style="padding:12px;">
+        <div style="background:#12122a; border:1px solid #1e1e3a; border-radius:10px; padding:10px 12px; display:flex; align-items:center;">
+          <div style="flex:1; font-size:12px; color:#4b5563;">Type a message...</div>
+          <div style="font-size:16px;">📤</div>
+        </div>
+      </div>
+
+      <div class="card" style="border-color:#065f46;">
+        <div style="font-size:11px; font-weight:700; color:#34d399;">🔒 Privacy Firewall</div>
+        <div style="font-size:10px; color:#4b5563; margin-top:4px;">Your conversations with Coach Lumi are private. Mom only sees trends and suggestions — never your exact words.</div>
+      </div>
+
+      <div style="height:20px;"></div>
+    </div>
+  </div>
+
+  <!-- ACADEMICS -->
+  <div class="phone screen" id="screen-academics">
+    <div class="phone-notch"></div>
+    <div class="phone-screen" style="background: #0c0c1a;">
+      <div class="app-header"><div><h2>Academics</h2><div class="sub">Emma's School Progress</div></div><span></span></div>
+
+      <div style="display:flex; align-items:center; gap:12px; padding:14px 12px;">
+        <div class="progress-ring"><div class="progress-ring-inner">B+</div></div>
+        <div style="flex:1">
+          <div style="font-size:16px; font-weight:800;">Overall GPA: 3.3</div>
+          <div style="font-size:11px; color:#34d399; margin-top:2px;">↑ 0.2 from last month</div>
+          <div style="font-size:10px; color:#4b5563; margin-top:2px;">3 subjects improving · 1 needs attention</div>
+        </div>
+      </div>
+
+      <div class="section-title">Subjects</div>
+
+      <div class="subject-row">
+        <div class="subject-icon">🔢</div>
+        <div class="subject-info"><div class="subject-name">Mathematics</div><div class="subject-grade">Chapter 7 — Fractions</div></div>
+        <div style="text-align:right"><div class="subject-score" style="color:#f59e0b;">B</div><div class="subject-trend trend-down">↓ from B+</div></div>
+      </div>
+      <div class="subject-row">
+        <div class="subject-icon">📖</div>
+        <div class="subject-info"><div class="subject-name">English</div><div class="subject-grade">Essay: "My Summer"</div></div>
+        <div style="text-align:right"><div class="subject-score" style="color:#34d399;">A-</div><div class="subject-trend trend-up">↑ from B</div></div>
+      </div>
+      <div class="subject-row">
+        <div class="subject-icon">🔬</div>
+        <div class="subject-info"><div class="subject-name">Science</div><div class="subject-grade">Lab: Plants</div></div>
+        <div style="text-align:right"><div class="subject-score" style="color:#34d399;">A</div><div class="subject-trend trend-up">↑ same</div></div>
+      </div>
+      <div class="subject-row">
+        <div class="subject-icon">🌍</div>
+        <div class="subject-info"><div class="subject-name">History</div><div class="subject-grade">Test: Civil War</div></div>
+        <div style="text-align:right"><div class="subject-score" style="color:#34d399;">B+</div><div class="subject-trend trend-up">↑ from B</div></div>
+      </div>
+
+      <div class="section-title">📖 Reading Streak</div>
+      <div class="card">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div style="font-size:28px;">📚</div>
+          <div style="flex:1">
+            <div style="font-size:14px; font-weight:700;">12-day reading streak!</div>
+            <div style="font-size:11px; color:#4b5563;">Currently reading: "Percy Jackson"</div>
+          </div>
+          <div style="font-size:14px; font-weight:800; color:#a78bfa;">+$0.50/day</div>
+        </div>
+        <div style="display:flex; gap:3px; margin-top:10px;">
+          <div style="flex:1; height:6px; background:#6366f1; border-radius:3px;"></div>
+          <div style="flex:1; height:6px; background:#6366f1; border-radius:3px;"></div>
+          <div style="flex:1; height:6px; background:#6366f1; border-radius:3px;"></div>
+          <div style="flex:1; height:6px; background:#6366f1; border-radius:3px;"></div>
+          <div style="flex:1; height:6px; background:#6366f1; border-radius:3px;"></div>
+          <div style="flex:1; height:6px; background:#6366f1; border-radius:3px;"></div>
+          <div style="flex:1; height:6px; background:#1e1e3a; border-radius:3px;"></div>
+        </div>
+      </div>
+
+      <div class="section-title">🤖 AI Study Suggestions</div>
+      <div class="insight-card">
+        <div class="insight-icon">📉</div>
+        <div class="insight-text">Math dropped to B. I've created a 30-min review bounty for fractions. Want to tackle it before Thursday's test?</div>
+        <div class="insight-action">Start Study Session · $3.00</div>
+      </div>
+
+      <div style="height:60px;"></div>
+      <div class="tab-bar">
+        <div class="tab-item"><div class="tab-icon">🏪</div>Market</div>
+        <div class="tab-item"><div class="tab-icon">💰</div>Wallet</div>
+        <div class="tab-item active"><div class="tab-icon">📚</div>Study</div>
+        <div class="tab-item"><div class="tab-icon">🏆</div>Badges</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ATHLETE MODE -->
+  <div class="phone screen" id="screen-athlete">
+    <div class="phone-notch"></div>
+    <div class="phone-screen" style="background: #0c0c1a;">
+      <div class="app-header"><div><h2>Athlete Mode</h2><div class="sub">Emma's Sports & Fitness</div></div><span></span></div>
+
+      <div class="level-card" style="background:linear-gradient(135deg,#065f46,#059669);">
+        <div class="level-row"><div class="level-emoji">🏃</div><div style="flex:1"><div class="level-title">Soccer · U12 Team</div><div class="level-sub">Next practice: Wednesday 4pm</div></div></div>
+        <div class="streak-row"><span>🔥 6 practice streak</span><span>⚽ 3 goals this month</span></div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-value">🏃 8,420</div><div class="stat-label">Steps Today</div></div>
+        <div class="stat-card"><div class="stat-value">⚽ 3</div><div class="stat-label">Goals</div></div>
+        <div class="stat-card"><div class="stat-value">🔥 6</div><div class="stat-label">Streak</div></div>
+      </div>
+
+      <div class="section-title">This Week's Training</div>
+
+      <div class="health-card">
+        <div class="health-row">
+          <div class="health-icon">⚽</div>
+          <div class="health-info">
+            <div class="health-label">Soccer Practice</div>
+            <div class="health-value">Mon ✅ · Wed ⏳ · Fri</div>
+          </div>
+        </div>
+        <div class="health-bar"><div class="health-fill" style="width:33%; background:linear-gradient(90deg,#059669,#34d399);"></div></div>
+      </div>
+
+      <div class="health-card">
+        <div class="health-row">
+          <div class="health-icon">🏃</div>
+          <div class="health-info">
+            <div class="health-label">Daily Steps</div>
+            <div class="health-value">8,420 / 10,000</div>
+          </div>
+        </div>
+        <div class="health-bar"><div class="health-fill" style="width:84%; background:linear-gradient(90deg,#2563eb,#60a5fa);"></div></div>
+      </div>
+
+      <div class="health-card">
+        <div class="health-row">
+          <div class="health-icon">💪</div>
+          <div class="health-info">
+            <div class="health-label">Exercise Minutes</div>
+            <div class="health-value">45 / 60 min today</div>
+          </div>
+        </div>
+        <div class="health-bar"><div class="health-fill" style="width:75%; background:linear-gradient(90deg,#7c3aed,#a78bfa);"></div></div>
+      </div>
+
+      <div class="section-title">💰 Earn Through Fitness</div>
+      <div class="card" style="border-color:#065f46;">
+        <div style="font-size:12px; font-weight:700; color:#34d399;">🏃 Exercise → Screen Time</div>
+        <div style="font-size:11px; color:#9ca3af; margin-top:4px;">30 min exercise = 30 min free screen time</div>
+        <div style="font-size:11px; color:#9ca3af; margin-top:2px;">10,000 steps = $1.00 bonus</div>
+        <div style="font-size:11px; color:#9ca3af; margin-top:2px;">Personal best = $5.00 achievement</div>
+      </div>
+
+      <div class="section-title">🏆 Achievements</div>
+      <div class="badge-row"><div class="badge-icon">⚽</div><div class="badge-info"><div class="badge-name">Hat Trick</div><div class="badge-desc">3 goals in one month</div></div><div class="badge-check">✅</div></div>
+      <div class="badge-row"><div class="badge-icon">🏃</div><div class="badge-info"><div class="badge-name">10K Steps</div><div class="badge-desc">Hit 10,000 steps in a day</div></div><div class="badge-check">✅</div></div>
+      <div class="badge-row locked"><div class="badge-icon">🔒</div><div class="badge-info"><div class="badge-name">Marathon Ready</div><div class="badge-desc">30-day exercise streak</div></div></div>
+
+      <div style="height:20px;"></div>
+    </div>
+  </div>
+
+  <!-- MOOD CHECK-IN -->
+  <div class="phone screen" id="screen-mood-check">
+    <div class="phone-notch"></div>
+    <div class="phone-screen" style="background: #0c0c1a;">
+      <div class="app-header"><div><h2>Daily Check-in</h2><div class="sub">How are you feeling today?</div></div><span></span></div>
+
+      <div style="text-align:center; padding:20px;">
+        <div style="font-size:18px; font-weight:800;">How are you feeling right now?</div>
+        <div style="font-size:11px; color:#4b5563; margin-top:4px;">Your coach uses this to understand you better</div>
+      </div>
+
+      <div class="mood-row">
+        <div class="mood-btn">😫</div>
+        <div class="mood-btn">😟</div>
+        <div class="mood-btn">😐</div>
+        <div class="mood-btn active">😊</div>
+        <div class="mood-btn">🤩</div>
+      </div>
+
+      <div class="section-title">What's going on?</div>
+      <div class="chip-row">
+        <div class="chip">School stress</div>
+        <div class="chip">Friend drama</div>
+        <div class="chip">Tired</div>
+        <div class="chip active">Energized</div>
+        <div class="chip">Bored</div>
+        <div class="chip">Excited</div>
+        <div class="chip">Anxious</div>
+        <div class="chip">Proud</div>
+      </div>
+
+      <div class="form-group">
+        <div class="form-label">Want to tell your coach more? (Private)</div>
+        <div class="form-input" style="min-height:60px; text-align:top;">I feel good today! Got enough sleep and excited about the car wash bounty.</div>
+      </div>
+
+      <div class="card" style="border-color:#065f46;">
+        <div style="font-size:11px; font-weight:700; color:#34d399;">🔒 This is private</div>
+        <div style="font-size:10px; color:#4b5563; margin-top:3px;">Mom only sees that you checked in — not what you wrote. Your coach reads it to help you better.</div>
+      </div>
+
+      <div class="btn-primary">Save Check-in</div>
+
+      <div class="section-title">This Week's Mood</div>
+      <div style="display:flex; justify-content:center; gap:6px; padding:0 12px;">
+        <div style="text-align:center;"><div style="font-size:20px;">😊</div><div style="font-size:9px; color:#4b5563;">Mon</div></div>
+        <div style="text-align:center;"><div style="font-size:20px;">😐</div><div style="font-size:9px; color:#4b5563;">Tue</div></div>
+        <div style="text-align:center;"><div style="font-size:20px;">😟</div><div style="font-size:9px; color:#4b5563;">Wed</div></div>
+        <div style="text-align:center;"><div style="font-size:20px;">😊</div><div style="font-size:9px; color:#4b5563;">Thu</div></div>
+        <div style="text-align:center;"><div style="font-size:20px;">🤩</div><div style="font-size:9px; color:#4b5563;">Fri</div></div>
+        <div style="text-align:center;"><div style="font-size:20px;">😊</div><div style="font-size:9px; color:#4b5563;">Sat</div></div>
+        <div style="text-align:center;"><div style="font-size:20px; opacity:0.3;">?</div><div style="font-size:9px; color:#4b5563;">Sun</div></div>
+      </div>
+
+      <div style="height:20px;"></div>
+    </div>
+  </div>
+
+  <!-- PARENT INSIGHTS -->
+  <div class="phone screen" id="screen-parent-insights">
+    <div class="phone-notch"></div>
+    <div class="phone-screen" style="background: #0c0c1a;">
+      <div class="app-header"><div><h2>Family Insights</h2><div class="sub">AI-powered observations</div></div><span></span></div>
+
+      <div class="section-title">⚠️ Needs Attention</div>
+
+      <div class="insight-card" style="border-color:#dc2626;">
+        <div class="insight-icon">📉</div>
+        <div class="insight-text"><strong>Jake's grades dropped after bedtime shifted to 11pm.</strong> His math went from B+ to C. Screen time increased 40% in the same period. Consider enforcing 9:30pm bedtime — his best grades were when he slept by 9pm.</div>
+        <div style="display:flex; gap:6px; margin-top:8px;">
+          <div class="insight-action">Adjust Bedtime</div>
+          <div class="insight-action" style="background:#2d2b55;">Dismiss</div>
+        </div>
+      </div>
+
+      <div class="insight-card" style="border-color:#f59e0b;">
+        <div class="insight-icon">⚠️</div>
+        <div class="insight-text"><strong>Jake's trust score dropped below 75.</strong> 2 rejected evidence submissions this week. The pattern correlates with increased gaming time. Consider a booster task to rebuild trust.</div>
+        <div class="insight-action">Assign Booster Task</div>
+      </div>
+
+      <div class="section-title">💡 Positive Patterns</div>
+
+      <div class="insight-card">
+        <div class="insight-icon">✨</div>
+        <div class="insight-text"><strong>Emma completes 90% more chores</strong> when rewards are visible in the marketplace within 10 minutes of posting. She responds best to visual progress bars and immediate feedback.</div>
+      </div>
+
+      <div class="insight-card">
+        <div class="insight-icon">🎯</div>
+        <div class="insight-text"><strong>Alex performs best when studying before football practice.</strong> His test scores are 15% higher on days he studies in the afternoon vs. evening. Consider adjusting his schedule.</div>
+      </div>
+
+      <div class="insight-card">
+        <div class="insight-icon">💰</div>
+        <div class="insight-text"><strong>The family economy is healthy.</strong> All children are earning. Tax pool is growing. Screen time purchases are within healthy limits. No exploitation detected.</div>
+      </div>
+
+      <div class="section-title">📊 Family Stats</div>
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-value">82%</div><div class="stat-label">Completion</div></div>
+        <div class="stat-card"><div class="stat-value">↑ 12%</div><div class="stat-label">vs Last Week</div></div>
+        <div class="stat-card"><div class="stat-value">3</div><div class="stat-label">Mood Alerts</div></div>
+      </div>
+
+      <div class="section-title">🧠 Recommendations</div>
+      <div class="card">
+        <div style="font-size:12px; font-weight:700; margin-bottom:6px;">Family Meeting Suggested</div>
+        <div style="font-size:11px; color:#9ca3af; line-height:1.5;">Jake's sibling rating dropped to 2 stars. Consider a family meeting to discuss cooperation. The AI coach can provide conversation starters.</div>
+      </div>
+
+      <div style="height:60px;"></div>
+      <div class="tab-bar">
+        <div class="tab-item"><div class="tab-icon">🏠</div>Home</div>
+        <div class="tab-item"><div class="tab-icon">📸</div>Review</div>
+        <div class="tab-item"><div class="tab-icon">📋</div>Post</div>
+        <div class="tab-item active"><div class="tab-icon">📊</div>Insights</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EVIDENCE REVIEW -->
+  <div class="phone screen" id="screen-evidence-review">
+    <div class="phone-notch"></div>
+    <div class="phone-screen" style="background: #0c0c1a;">
+      <div class="app-header"><div><h2>Evidence Review</h2><div class="sub">3 submissions awaiting</div></div><span></span></div>
+
+      <div class="approval-card" style="border-color:#6366f1;">
+        <div style="display:flex; align-items:center; justify-content:space-between;">
+          <div><div class="approval-child">👧 Emma · Trust ★ 94</div><div class="approval-task">Clean Room</div></div>
+          <div class="countdown"><div class="countdown-dot"></div><div class="countdown-text">Review</div></div>
+        </div>
+        <div style="display:flex; gap:5px; margin-top:8px;">
+          <div class="evidence-thumb" style="flex:1;"><div style="text-align:center;"><div style="font-size:20px;">📸</div><div style="font-size:9px; margin-top:3px;">BEFORE</div></div></div>
+          <div style="display:flex; align-items:center; color:#6366f1; font-size:14px;">→</div>
+          <div class="evidence-thumb" style="flex:1; background:#065f46;"><div style="text-align:center;"><div style="font-size:20px;">✅</div><div style="font-size:9px; margin-top:3px;">AFTER</div></div></div>
+        </div>
+        <div style="margin-top:8px;"><div style="font-size:10px; color:#4b5563; margin-bottom:3px;">Quality Rating</div><div class="star-row"><span class="star active">⭐</span><span class="star active">⭐</span><span class="star active">⭐</span><span class="star active">⭐</span><span class="star">⭐</span></div></div>
+        <div class="approval-btns"><button class="btn-approve">✓ Approve · +$1.50</button><button class="btn-reject">✗ Redo</button></div>
+      </div>
+
+      <div class="approval-card">
+        <div><div class="approval-child">🧒 Jake · Trust ★ 71</div><div class="approval-task">Do Dishes</div></div>
+        <div style="display:flex; gap:5px; margin-top:8px;">
+          <div class="evidence-thumb" style="flex:1;"><div style="text-align:center;"><div style="font-size:20px;">📸</div><div style="font-size:9px; margin-top:3px;">BEFORE</div></div></div>
+          <div style="display:flex; align-items:center; color:#4b5563; font-size:14px;">→</div>
+          <div class="evidence-thumb" style="flex:1;"><div style="text-align:center;"><div style="font-size:20px;">📸</div><div style="font-size:9px; margin-top:3px;">AFTER</div></div></div>
+        </div>
+        <div style="margin-top:8px;"><div style="font-size:10px; color:#4b5563; margin-bottom:3px;">Quality Rating</div><div class="star-row"><span class="star active">⭐</span><span class="star active">⭐</span><span class="star">⭐</span><span class="star">⭐</span><span class="star">⭐</span></div></div>
+        <div class="approval-btns"><button class="btn-approve">✓ Approve · +$1.50</button><button class="btn-reject">✗ Redo</button></div>
+      </div>
+
+      <div style="height:60px;"></div>
+      <div class="tab-bar">
+        <div class="tab-item"><div class="tab-icon">🏠</div>Home</div>
+        <div class="tab-item active"><div class="tab-icon">📸</div>Review</div>
+        <div class="tab-item"><div class="tab-icon">📋</div>Post</div>
+        <div class="tab-item"><div class="tab-icon">📊</div>Insights</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WALLET -->
+  <div class="phone screen" id="screen-wallet">
+    <div class="phone-notch"></div>
+    <div class="phone-screen" style="background: #0c0c1a;">
+      <div class="app-header"><h2>My Wallet</h2><span></span></div>
+      <div class="balance-card">
+        <div class="balance-label">Total Balance</div>
+        <div class="balance-value">$18.50</div>
+        <div class="balance-row">
+          <div class="balance-item"><div class="balance-item-label">Earned</div><div class="balance-item-val" style="color:#34d399;">+$25.00</div></div>
+          <div class="balance-divider"></div>
+          <div class="balance-item"><div class="balance-item-label">Tax</div><div class="balance-item-val" style="color:#f59e0b;">-$2.50</div></div>
+          <div class="balance-divider"></div>
+          <div class="balance-item"><div class="balance-item-label">Spent</div><div class="balance-item-val" style="color:#f87171;">-$4.00</div></div>
+        </div>
+      </div>
+      <div class="card"><div style="display:flex; justify-content:space-between; align-items:center;"><span style="font-size:12px; font-weight:700;">🎯 Goal: Headphones 🎧</span><span style="font-size:11px; color:#4b5563;">$18.50 / $50</span></div><div style="height:6px; background:#1e1e3a; border-radius:3px; margin-top:6px;"><div style="height:6px; width:37%; background:linear-gradient(90deg,#6366f1,#a78bfa); border-radius:3px;"></div></div></div>
+      <div class="section-title">Transactions</div>
+      <div class="tx-row"><div class="tx-icon">💰</div><div class="tx-info"><div class="tx-desc">Clean Room</div><div class="tx-time">Today</div></div><div class="tx-amount tx-pos">+$1.50</div></div>
+      <div class="tx-row"><div class="tx-icon">🏛️</div><div class="tx-info"><div class="tx-desc">Family Tax</div><div class="tx-time">Today</div></div><div class="tx-amount tx-tax">-$0.15</div></div>
+      <div class="tx-row"><div class="tx-icon">📱</div><div class="tx-info"><div class="tx-desc">Screen Time 30m</div><div class="tx-time">Yesterday</div></div><div class="tx-amount tx-neg">-$2.50</div></div>
+      <div class="tx-row"><div class="tx-icon">💰</div><div class="tx-info"><div class="tx-desc">Make Bed</div><div class="tx-time">Today</div></div><div class="tx-amount tx-pos">+$0.50</div></div>
+      <div style="height:60px;"></div>
+      <div class="tab-bar"><div class="tab-item"><div class="tab-icon">🏪</div>Market</div><div class="tab-item active"><div class="tab-icon">💰</div>Wallet</div><div class="tab-item"><div class="tab-icon">📚</div>Study</div><div class="tab-item"><div class="tab-icon">🏆</div>Badges</div></div>
+    </div>
+  </div>
+
+  <!-- SCREEN TIME SHOP -->
+  <div class="phone screen" id="screen-screen-shop">
+    <div class="phone-notch"></div>
+    <div class="phone-screen" style="background: #0c0c1a;">
+      <div class="app-header"><div><h2>Screen Time Shop</h2><div class="sub">Buy time with earnings</div></div><span></span></div>
+      <div style="text-align:center; padding:16px;"><div style="font-size:10px; color:#4b5563; text-transform:uppercase; letter-spacing:1px;">Balance</div><div style="font-size:32px; font-weight:900; color:#a78bfa; margin-top:3px;">$18.50</div></div>
+      <div class="card card-glow" style="border-color:#6366f1;"><div style="display:flex; justify-content:space-between; align-items:center;"><div><div style="font-size:14px; font-weight:700;">📱 30 Minutes</div><div style="font-size:10px; color:#4b5563;">TikTok, YouTube, Games</div></div><div style="text-align:right;"><div style="font-size:18px; font-weight:800; color:#a78bfa;">$2.50</div></div></div><button class="bid-btn">Purchase</button></div>
+      <div class="card"><div style="display:flex; justify-content:space-between; align-items:center;"><div><div style="font-size:14px; font-weight:700;">📱 1 Hour</div><div style="font-size:10px; color:#4b5563;">All apps</div></div><div style="text-align:right;"><div style="font-size:18px; font-weight:800; color:#a78bfa;">$4.00</div><div style="font-size:9px; color:#34d399;">save $1!</div></div></div><button class="bid-btn">Purchase</button></div>
+      <div class="card"><div style="display:flex; justify-content:space-between; align-items:center;"><div><div style="font-size:14px; font-weight:700;">🎮 Gaming Session</div><div style="font-size:10px; color:#4b5563;">Xbox, PS5, Switch</div></div><div style="text-align:right;"><div style="font-size:18px; font-weight:800; color:#a78bfa;">$3.00</div></div></div><button class="bid-btn">Purchase</button></div>
+      <div class="card" style="border-color:#065f46;"><div style="font-size:12px; font-weight:700; color:#34d399;">💡 Earn Free Time</div><div style="font-size:10px; color:#9ca3af; margin-top:3px;">30 min exercise → 30 min free</div><div style="font-size:10px; color:#9ca3af; margin-top:2px;">Complete homework → 15 min bonus</div></div>
+      <div style="height:20px;"></div>
+    </div>
+  </div>
+
+  <!-- REPUTATION -->
+  <div class="phone screen" id="screen-reputation">
+    <div class="phone-notch"></div>
+    <div class="phone-screen" style="background: #0c0c1a;">
+      <div class="app-header"><h2>My Reputation</h2><span></span></div>
+      <div style="text-align:center; padding:20px;"><div style="font-size:48px; font-weight:900; background:linear-gradient(135deg,#34d399,#10b981); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">★ 94</div><div style="font-size:13px; color:#4b5563; margin-top:3px;">Trust Score</div><div style="font-size:11px; color:#34d399; margin-top:3px;">Excellent — Full marketplace access</div></div>
+      <div class="card"><div style="font-size:12px; font-weight:700; margin-bottom:8px;">Score Breakdown</div><div style="display:flex; justify-content:space-between; margin-bottom:6px;"><span style="font-size:11px; color:#9ca3af;">On-time completion</span><span style="font-size:11px; font-weight:700; color:#34d399;">+32</span></div><div style="display:flex; justify-content:space-between; margin-bottom:6px;"><span style="font-size:11px; color:#9ca3af;">Evidence quality</span><span style="font-size:11px; font-weight:700; color:#34d399;">+28</span></div><div style="display:flex; justify-content:space-between; margin-bottom:6px;"><span style="font-size:11px; color:#9ca3af;">Streak bonus</span><span style="font-size:11px; font-weight:700; color:#34d399;">+20</span></div><div style="display:flex; justify-content:space-between; margin-bottom:6px;"><span style="font-size:11px; color:#9ca3af;">Parent ratings</span><span style="font-size:11px; font-weight:700; color:#34d399;">+14</span></div><div style="display:flex; justify-content:space-between;"><span style="font-size:11px; color:#9ca3af;">Rejections</span><span style="font-size:11px; font-weight:700; color:#34d399;">0</span></div></div>
+      <div class="card"><div style="font-size:12px; font-weight:700; margin-bottom:6px;">Unlocks</div><div style="font-size:11px; color:#9ca3af; margin-bottom:4px;">✅ Premium bounties</div><div style="font-size:11px; color:#9ca3af; margin-bottom:4px;">✅ Bid on any job</div><div style="font-size:11px; color:#9ca3af; margin-bottom:4px;">✅ Later bedtime</div><div style="font-size:11px; color:#374151;">🔒 Trust 95+ → Set own limits</div></div>
+      <div style="height:60px;"></div>
+      <div class="tab-bar"><div class="tab-item"><div class="tab-icon">🏪</div>Market</div><div class="tab-item"><div class="tab-icon">💰</div>Wallet</div><div class="tab-item"><div class="tab-icon">📚</div>Study</div><div class="tab-item active"><div class="tab-icon">🏆</div>Badges</div></div>
+    </div>
+  </div>
+
+  <!-- BADGES -->
+  <div class="phone screen" id="screen-badges">
+    <div class="phone-notch"></div>
+    <div class="phone-screen" style="background: #0c0c1a;">
+      <div class="app-header"><h2>Achievements</h2><span></span></div>
+      <div style="background:linear-gradient(135deg,#3b1d8e,#5b21b6); margin:12px; border-radius:14px; padding:18px; text-align:center;"><div style="font-size:40px;">⭐</div><div style="font-size:22px; font-weight:900; margin-top:4px;">Level 5</div><div style="font-size:13px; color:rgba(255,255,255,0.5);">Champion · Trust ★ 94</div></div>
+      <div class="stats-row"><div class="stat-card"><div class="stat-value">🔥 8</div><div class="stat-label">Streak</div></div><div class="stat-card"><div class="stat-value">🏅 6</div><div class="stat-label">Badges</div></div><div class="stat-card"><div class="stat-value">⭐ 12</div><div class="stat-label">Best</div></div></div>
+      <div class="section-title">Skill Tree</div>
+      <div class="badge-row"><div class="badge-icon">🧹</div><div class="badge-info"><div class="badge-name">Kitchen Assistant</div><div class="badge-desc">20 kitchen tasks</div></div><div class="badge-check">✅</div></div>
+      <div class="badge-row"><div class="badge-icon">🔥</div><div class="badge-info"><div class="badge-name">7-Day Streak</div><div class="badge-desc">7 consecutive days</div></div><div class="badge-check">✅</div></div>
+      <div class="badge-row"><div class="badge-icon">📸</div><div class="badge-info"><div class="badge-name">Evidence Pro</div><div class="badge-desc">10 approved in a row</div></div><div class="badge-check">✅</div></div>
+      <div class="badge-row"><div class="badge-icon">💰</div><div class="badge-info"><div class="badge-name">Saver</div><div class="badge-desc">Save $10 without spending</div></div><div class="badge-check">✅</div></div>
+      <div class="badge-row"><div class="badge-icon">⚽</div><div class="badge-info"><div class="badge-name">Hat Trick</div><div class="badge-desc">3 goals in one month</div></div><div class="badge-check">✅</div></div>
+      <div class="badge-row"><div class="badge-icon">📖</div><div class="badge-info"><div class="badge-name">Bookworm</div><div class="badge-desc">10-day reading streak</div></div><div class="badge-check">✅</div></div>
+      <div class="badge-row locked"><div class="badge-icon">🔒</div><div class="badge-info"><div class="badge-name">Bidding Master</div><div class="badge-desc">Win 10 premium bids</div></div></div>
+      <div class="badge-row locked"><div class="badge-icon">🔒</div><div class="badge-info"><div class="badge-name">Trusted Earner</div><div class="badge-desc">Trust 95+ for 30 days</div></div></div>
+      <div style="height:60px;"></div>
+      <div class="tab-bar"><div class="tab-item"><div class="tab-icon">🏪</div>Market</div><div class="tab-item"><div class="tab-icon">💰</div>Wallet</div><div class="tab-item"><div class="tab-icon">📚</div>Study</div><div class="tab-item active"><div class="tab-icon">🏆</div>Badges</div></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>

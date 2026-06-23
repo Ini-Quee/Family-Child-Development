@@ -1,13 +1,27 @@
+# Dependencies
 node_modules/
+frontend/node_modules/
+backend/node_modules/
+
+# Environment
+.env
+*.env.local
+
+# Database files (persisted in Docker volumes)
+backend/data/
+backend/src/*.db
+backend/src/*.db-shm
+backend/src/*.db-wal
+
+# Build artifacts
 dist/
 .expo/
-*.db
-.env
 *.log
+
+# OS files
 .DS_Store
 Thumbs.db
-capture-screens.js
-capture-v2.js
-wireframes.html
-wireframes-v2.html
-wireframes-v3.html
+
+# Docker
+postgres_data/
+redis_data/
