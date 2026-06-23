@@ -35,11 +35,15 @@ async function creditRewards(childId, xp, money, choreId) {
   if (money > 0) {
     const wallet = await db.prepare('SELECT * FROM wallets WHERE child_id = ?').get(childId);
     if (wallet) {
-      const newBalance = (wallet.balance + money).toFixed(2);
-      const newTotalEarned = (wallet.total_earned + money).toFixed(2);
-      await db.prepare('UPDATE wallets SET balance = ?, total_earned = ?, updated_at = NOW() WHERE id = ?').run(parseFloat(newBalance), parseFloat(newTotalEarned), wallet.id);
+      const currentBalance = parseFloat(wallet.balance) || 0;
+      const currentEarned = parseFloat(wallet.total_earned) || 0;
+      const newBalance = Number(currentBalance + money).toFixed(2);
+      const newTotalEarned = Number(currentEarned + money).toFixed(2);
+      await db.prepare('UPDATE wallets SET balance = ?, total_earned = ?, updated_at = NOW() WHERE id = ?').run(
+        Number(newBalance), Number(newTotalEarned), wallet.id
+      );
       await db.prepare('INSERT INTO financial_transactions (id, child_id, wallet_id, type, amount, category, description, balance_after) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(
-        uuidv4(), childId, wallet.id, 'earning', money, 'chore', 'Chore completed', parseFloat(newBalance)
+        uuidv4(), childId, wallet.id, 'earning', money, 'chore', 'Chore completed', Number(newBalance)
       );
     }
   }
