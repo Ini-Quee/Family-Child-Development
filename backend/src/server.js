@@ -9,14 +9,19 @@ const choreRoutes = require('./routes/chores');
 const assignmentRoutes = require('./routes/assignments');
 const childrenRoutes = require('./routes/children');
 const dashboardRoutes = require('./routes/dashboard');
+const marketplaceRoutes = require('./routes/marketplace');
+const economyRoutes = require('./routes/economy');
+const insightsRoutes = require('./routes/insights');
 const { securityHeaders, sanitizeObject, logAuditEvent } = require('./middleware/security');
 const { runSecurityMigrations } = require('./db/security-migrate');
+const { runEconomyMigrations } = require('./db/economy-migrate');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Run security migrations on startup
+// Run all migrations on startup
 runSecurityMigrations();
+runEconomyMigrations();
 
 // Security headers (helmet + custom)
 app.use(helmet({
@@ -102,6 +107,11 @@ app.use('/api/chores', choreRoutes);
 app.use('/api/assignments', assignmentRoutes);
 app.use('/api/children', childrenRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/marketplace', marketplaceRoutes);
+app.use('/api/screen-time', economyRoutes);
+app.use('/api/mood', economyRoutes);
+app.use('/api/academics', economyRoutes);
+app.use('/api/insights', insightsRoutes);
 
 // 404 handler — don't reveal route structure
 app.use((req, res) => {
