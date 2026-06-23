@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FamilyOS — Where Families Grow Together</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{
+  --bg:#0c0c1a;
+  --bg2:#12122a;
+  --surface:#1a1a2e;
+  --border:#2d2b55;
+  --text:#f5f0e8;
+  --text2:#a89880;
+  --text3:#6b5f52;
+  --amber:#f5a623;
+  --amber-glow:rgba(245,166,35,0.15);
+  --teal:#4ecdc4;
+  --coral:#ff6b6b;
+  --violet:#a78bfa;
+  --green:#10b981;
+  --blue:#60a5fa;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Plus Jakarta Sans',sans-serif;color:var(--text);background:var(--bg);overflow-x:hidden;line-height:1.6}
+h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:14px 40px;display:flex;align-items:center;justify-content:space-between;background:rgba(12,12,26,0.85);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.04)}
+.logo{font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:10px}
+.logo .dot{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--amber),var(--coral));display:flex;align-items:center;justify-content:center;font-size:14px}
+.nav-links{display:flex;gap:28px;align-items:center}
+.nav-links a{font-size:13px;font-weight:500;color:var(--text2);text-decoration:none;transition:color 0.2s;letter-spacing:0.3px}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{background:linear-gradient(135deg,var(--amber),#e09415)!important;color:var(--bg)!important;padding:10px 24px;border-radius:10px;font-weight:700!important;letter-spacing:0}
+.mobile-btn{display:none;background:none;border:none;color:var(--text);font-size:20px;cursor:pointer}
+
+/* HERO */
+.hero{min-height:100vh;display:grid;grid-template-columns:1fr 1fr;align-items:center;padding:120px 60px 80px;max-width:1400px;margin:0 auto;gap:60px}
+.hero-text{position:relative;z-index:2}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);padding:8px 16px;border-radius:100px;font-size:12px;font-weight:600;color:var(--amber);margin-bottom:24px}
+.hero-badge i{font-size:10px}
+.hero-text h1{font-size:56px;font-weight:800;line-height:1.08;letter-spacing:-2px;margin-bottom:24px}
+.hero-text h1 .grad{background:linear-gradient(135deg,var(--amber),var(--coral));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-text p{font-size:17px;color:var(--text2);line-height:1.7;margin-bottom:36px;max-width:480px}
+.hero-btns{display:flex;gap:14px;flex-wrap:wrap}
+.btn-p{background:linear-gradient(135deg,var(--amber),#e09415);color:var(--bg);padding:16px 32px;border-radius:12px;font-size:15px;font-weight:700;border:none;cursor:pointer;transition:all 0.3s;text-decoration:none;display:inline-flex;align-items:center;gap:10px}
+.btn-p:hover{transform:translateY(-2px);box-shadow:0 12px 32px var(--amber-glow)}
+.btn-s{background:var(--surface);color:var(--text);padding:16px 32px;border-radius:12px;font-size:15px;font-weight:600;border:1px solid var(--border);cursor:pointer;transition:all 0.3s;text-decoration:none;display:inline-flex;align-items:center;gap:10px}
+.btn-s:hover{border-color:var(--amber);transform:translateY(-2px)}
+.hero-visual{position:relative;display:flex;align-items:center;justify-content:center}
+.hero-phone{width:320px;background:var(--bg2);border-radius:36px;border:2px solid var(--border);padding:16px;position:relative;box-shadow:0 40px 80px rgba(0,0,0,0.4)}
+.phone-notch{width:100px;height:24px;background:var(--bg);border-radius:0 0 16px 16px;margin:0 auto 12px}
+.phone-screen{background:var(--surface);border-radius:20px;padding:16px;min-height:400px}
+.phone-greeting{font-size:14px;font-weight:700;margin-bottom:12px}
+.phone-card{background:var(--bg2);border-radius:12px;padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.phone-card-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px}
+.phone-card-info{flex:1}
+.phone-card-title{font-size:12px;font-weight:600}
+.phone-card-sub{font-size:10px;color:var(--text3)}
+.phone-card-value{font-size:14px;font-weight:700}
+.phone-card-value.green{color:var(--green)}
+.phone-card-value.amber{color:var(--amber)}
+.phone-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:12px}
+.phone-stat{background:var(--bg2);border-radius:8px;padding:8px;text-align:center}
+.phone-stat-val{font-size:16px;font-weight:800;color:var(--amber)}
+.phone-stat-lbl{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px}
+.floating-badge{position:absolute;background:var(--green);color:#fff;padding:8px 14px;border-radius:10px;font-size:12px;font-weight:700;box-shadow:0 8px 24px rgba(16,185,129,0.3);animation:floatBadge 3s ease-in-out infinite}
+.floating-badge.top{top:-10px;right:-20px}
+.floating-badge.bottom{bottom:40px;left:-30px;animation-delay:1.5s;background:var(--amber)}
+@keyframes floatBadge{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.floating-avatar{position:absolute;width:48px;height:48px;border-radius:50%;border:3px solid var(--bg);box-shadow:0 4px 12px rgba(0,0,0,0.3);overflow:hidden}
+.floating-avatar img{width:100%;height:100%;object-fit:cover}
+.floating-avatar.a1{top:20px;left:-20px}
+.floating-avatar.a2{bottom:60px;right:-20px}
+
+/* SOCIAL PROOF */
+.social-proof{padding:40px 60px;max-width:1400px;margin:0 auto;display:flex;align-items:center;justify-content:center;gap:40px;flex-wrap:wrap}
+.proof-item{display:flex;align-items:center;gap:10px}
+.proof-num{font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:800;color:var(--amber)}
+.proof-label{font-size:12px;color:var(--text3);line-height:1.3}
+.proof-divider{width:1px;height:40px;background:var(--border)}
+
+/* PAIN */
+.pain{padding:100px 60px;max-width:1200px;margin:0 auto}
+.pain-header{text-align:center;margin-bottom:60px}
+.section-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--amber);margin-bottom:12px}
+.section-title{font-size:42px;font-weight:800;line-height:1.15;letter-spacing:-1.5px;margin-bottom:16px}
+.section-sub{font-size:16px;color:var(--text2);max-width:560px;margin:0 auto;line-height:1.6}
+.quote-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.quote-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:28px;position:relative;transition:all 0.3s}
+.quote-card:hover{transform:translateY(-4px);border-color:var(--amber);box-shadow:0 12px 32px var(--amber-glow)}
+.quote-icon{font-size:32px;color:var(--amber);opacity:0.3;margin-bottom:12px}
+.quote-text{font-size:14px;color:var(--text2);line-height:1.7;margin-bottom:20px;font-style:italic}
+.quote-author{display:flex;align-items:center;gap:10px}
+.quote-avatar{width:36px;height:36px;border-radius:50%;overflow:hidden;border:2px solid var(--border)}
+.quote-avatar img{width:100%;height:100%;object-fit:cover}
+.quote-name{font-size:13px;font-weight:600;color:var(--text)}
+.quote-role{font-size:11px;color:var(--text3)}
+.pain-footer{text-align:center;margin-top:40px;font-size:15px;color:var(--text2)}
+.pain-footer strong{color:var(--amber)}
+
+/* SOLUTION */
+.solution{padding:100px 60px;max-width:1400px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
+.solution-visual{position:relative}
+.solution-house{width:100%;aspect-ratio:1.1;background:linear-gradient(135deg,var(--bg2),var(--surface));border-radius:24px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.house-emoji{font-size:100px;opacity:0.6}
+.module-orbit{position:absolute;width:100%;height:100%;animation:rotate 20s linear infinite}
+@keyframes rotate{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.orbit-item{position:absolute;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 14px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;box-shadow:0 8px 24px rgba(0,0,0,0.2)}
+.orbit-item:nth-child(1){top:5%;left:50%;transform:translateX(-50%)}
+.orbit-item:nth-child(2){top:35%;right:0}
+.orbit-item:nth-child(3){bottom:35%;right:0}
+.orbit-item:nth-child(4){bottom:5%;left:50%;transform:translateX(-50%)}
+.orbit-item:nth-child(5){bottom:35%;left:0}
+.orbit-item:nth-child(6){top:35%;left:0}
+.solution-text .section-title{font-size:38px}
+.solution-text p{font-size:15px;color:var(--text2);line-height:1.7;margin-bottom:16px}
+.solution-text p strong{color:var(--text)}
+
+/* HOW */
+.how{padding:100px 60px;background:var(--bg2)}
+.how-inner{max-width:1200px;margin:0 auto}
+.how-header{text-align:center;margin-bottom:60px}
+.timeline{position:relative;max-width:900px;margin:0 auto}
+.timeline::before{content:'';position:absolute;left:50%;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,var(--amber),var(--teal),var(--violet),var(--green),var(--blue));transform:translateX(-50%)}
+.timeline-item{display:flex;align-items:center;margin-bottom:40px;position:relative}
+.timeline-item:nth-child(odd){flex-direction:row-reverse}
+.timeline-dot{position:absolute;left:50%;transform:translateX(-50%);width:48px;height:48px;border-radius:50%;background:var(--surface);border:3px solid var(--amber);display:flex;align-items:center;justify-content:center;font-size:18px;z-index:2;box-shadow:0 4px 16px var(--amber-glow)}
+.timeline-content{width:42%;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;transition:all 0.3s}
+.timeline-content:hover{border-color:var(--amber);transform:translateY(-2px)}
+.timeline-step{font-size:11px;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.timeline-title{font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px}
+.timeline-desc{font-size:13px;color:var(--text2);line-height:1.6}
+
+/* FEATURES */
+.features{padding:100px 60px;max-width:1400px;margin:0 auto}
+.features-header{text-align:center;margin-bottom:60px}
+.feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.feature-card{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:32px;transition:all 0.3s;position:relative;overflow:hidden}
+.feature-card:hover{transform:translateY(-4px);border-color:var(--amber);box-shadow:0 16px 40px var(--amber-glow)}
+.feature-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.feature-card:nth-child(1)::before{background:linear-gradient(90deg,var(--amber),var(--coral))}
+.feature-card:nth-child(2)::before{background:linear-gradient(90deg,var(--teal),var(--green))}
+.feature-card:nth-child(3)::before{background:linear-gradient(90deg,var(--violet),var(--blue))}
+.feature-card:nth-child(4)::before{background:linear-gradient(90deg,var(--coral),var(--amber))}
+.feature-card:nth-child(5)::before{background:linear-gradient(90deg,var(--green),var(--teal))}
+.feature-card:nth-child(6)::before{background:linear-gradient(90deg,var(--blue),var(--violet))}
+.feature-icon{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:20px}
+.feature-icon.amber{background:var(--amber-glow);color:var(--amber)}
+.feature-icon.teal{background:rgba(78,205,196,0.15);color:var(--teal)}
+.feature-icon.violet{background:rgba(167,139,250,0.15);color:var(--violet)}
+.feature-icon.coral{background:rgba(255,107,107,0.15);color:var(--coral)}
+.feature-icon.green{background:rgba(16,185,129,0.15);color:var(--green)}
+.feature-icon.blue{background:rgba(96,165,250,0.15);color:var(--blue)}
+.feature-tag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--amber);margin-bottom:10px}
+.feature-title{font-size:18px;font-weight:700;color:var(--text);margin-bottom:10px}
+.feature-desc{font-size:13px;color:var(--text2);line-height:1.6}
+
+/* KIDS */
+.kids{padding:100px 60px;background:linear-gradient(135deg,var(--bg),#1a0a3e);position:relative;overflow:hidden}
+.kids::before{content:'';position:absolute;top:-200px;right:-200px;width:600px;height:600px;background:radial-gradient(circle,var(--amber-glow),transparent);border-radius:50%}
+.kids-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+.kids-text .section-title{font-size:36px;color:var(--text)}
+.kids-text .section-title em{color:var(--amber);font-style:normal}
+.kids-text p{font-size:15px;color:var(--text2);line-height:1.7;margin-bottom:16px}
+.kids-list{list-style:none;margin-top:20px}
+.kids-list li{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:14px;color:var(--text2)}
+.kids-list li .icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px}
+.kids-list li .icon.a{background:var(--amber-glow);color:var(--amber)}
+.kids-list li .icon.t{background:rgba(78,205,196,0.15);color:var(--teal)}
+.kids-list li .icon.v{background:rgba(167,139,250,0.15);color:var(--violet)}
+.kids-list li .icon.g{background:rgba(16,185,129,0.15);color:var(--green)}
+.kids-mockup{background:var(--bg2);border-radius:20px;border:1px solid var(--border);overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
+.mockup-bar{background:var(--surface);padding:12px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)}
+.mockup-dot{width:8px;height:8px;border-radius:50%;background:var(--text3)}
+.mockup-body{padding:16px}
+.mockup-header-row{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.mockup-avatar{width:40px;height:40px;border-radius:50%;overflow:hidden}
+.mockup-avatar img{width:100%;height:100%;object-fit:cover}
+.mockup-name{font-size:14px;font-weight:700}
+.mockup-level{font-size:11px;color:var(--violet)}
+.mockup-row{display:flex;align-items:center;gap:10px;padding:10px;background:var(--surface);border-radius:10px;margin-bottom:6px}
+.mockup-row-icon{font-size:16px;width:24px;text-align:center}
+.mockup-row-title{flex:1;font-size:12px;font-weight:600}
+.mockup-row-xp{font-size:13px;font-weight:700;color:var(--amber)}
+.mockup-row.done{opacity:0.5}
+.mockup-row.done .mockup-row-title{text-decoration:line-through;color:var(--text3)}
+.mockup-stats{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:12px}
+.mockup-stat{background:var(--surface);border-radius:8px;padding:10px;text-align:center}
+.mockup-stat-val{font-size:16px;font-weight:800;color:var(--amber)}
+.mockup-stat-lbl{font-size:9px;color:var(--text3);text-transform:uppercase}
+
+/* TRUST */
+.trust{padding:100px 60px;max-width:1200px;margin:0 auto}
+.trust-header{text-align:center;margin-bottom:60px}
+.trust-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.trust-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:28px;text-align:center;transition:all 0.3s}
+.trust-card:hover{transform:translateY(-4px);border-color:var(--amber)}
+.trust-icon{font-size:36px;margin-bottom:14px}
+.trust-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:8px}
+.trust-desc{font-size:12px;color:var(--text2);line-height:1.6}
+
+/* TESTIMONIALS */
+.testimonials{padding:100px 60px;background:var(--bg2)}
+.testimonials-inner{max-width:1200px;margin:0 auto}
+.testimonials-header{text-align:center;margin-bottom:60px}
+.testimonial-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.testimonial-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;transition:all 0.3s}
+.testimonial-card:hover{transform:translateY(-4px);border-color:var(--amber)}
+.testimonial-stars{color:var(--amber);font-size:14px;margin-bottom:14px}
+.testimonial-quote{font-size:14px;color:var(--text2);line-height:1.7;margin-bottom:20px;font-style:italic}
+.testimonial-author{display:flex;align-items:center;gap:10px}
+.testimonial-avatar{width:40px;height:40px;border-radius:50%;overflow:hidden;border:2px solid var(--border)}
+.testimonial-avatar img{width:100%;height:100%;object-fit:cover}
+.testimonial-name{font-size:13px;font-weight:600;color:var(--text)}
+.testimonial-role{font-size:11px;color:var(--text3)}
+
+/* PRICING */
+.pricing{padding:100px 60px;max-width:1200px;margin:0 auto}
+.pricing-header{text-align:center;margin-bottom:60px}
+.pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;align-items:start}
+.price-card{background:var(--bg2);border:2px solid var(--border);border-radius:20px;padding:32px;text-align:center;transition:all 0.3s;position:relative}
+.price-card.popular{border-color:var(--amber);transform:scale(1.04);box-shadow:0 20px 60px var(--amber-glow)}
+.price-card.popular::before{content:'MOST POPULAR';position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--amber);color:var(--bg);padding:4px 16px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:1px}
+.price-name{font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px}
+.price-amount{font-family:'Space Grotesk',sans-serif;font-size:48px;font-weight:800;color:var(--text);margin-bottom:4px}
+.price-amount span{font-size:14px;font-weight:500;color:var(--text3)}
+.price-desc{font-size:12px;color:var(--text3);margin-bottom:24px}
+.price-features{text-align:left;margin-bottom:24px}
+.price-features li{font-size:13px;color:var(--text2);padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);display:flex;align-items:center;gap:8px}
+.price-features li i{color:var(--green);font-size:12px}
+.price-btn{width:100%;padding:14px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s;border:none}
+.price-btn.primary{background:var(--amber);color:var(--bg)}
+.price-btn.primary:hover{background:#e09415}
+.price-btn.secondary{background:var(--surface);color:var(--text);border:1px solid var(--border)}
+.price-btn.secondary:hover{border-color:var(--amber)}
+
+/* FINAL CTA */
+.final-cta{padding:120px 60px;background:linear-gradient(135deg,#1a0a3e,var(--bg));text-align:center;position:relative;overflow:hidden}
+.final-cta::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:800px;height:800px;background:radial-gradient(circle,var(--amber-glow),transparent);border-radius:50%}
+.final-cta h2{font-size:48px;font-weight:800;color:var(--text);margin-bottom:16px;letter-spacing:-1.5px;position:relative}
+.final-cta p{font-size:17px;color:var(--text2);margin-bottom:36px;max-width:500px;margin-left:auto;margin-right:auto;position:relative}
+
+/* FOOTER */
+footer{padding:60px 60px 30px;background:var(--bg);border-top:1px solid var(--border)}
+.footer-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px}
+.footer-brand{font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.footer-desc{font-size:12px;color:var(--text3);line-height:1.6;max-width:300px}
+.footer-col h4{font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px}
+.footer-col a{display:block;font-size:12px;color:var(--text3);text-decoration:none;padding:4px 0;transition:color 0.2s}
+.footer-col a:hover{color:var(--amber)}
+.footer-bottom{max-width:1200px;margin:30px auto 0;padding-top:20px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:11px;color:var(--text3)}
+
+/* ANIMATIONS */
+.reveal{opacity:0;transform:translateY(24px);transition:all 0.6s cubic-bezier(0.16,1,0.3,1)}
+.reveal.visible{opacity:1;transform:translateY(0)}
+.d1{transition-delay:0.1s}.d2{transition-delay:0.2s}.d3{transition-delay:0.3s}
+
+/* RESPONSIVE */
+@media(max-width:1024px){
+.hero{grid-template-columns:1fr;padding:100px 30px 60px}
+.hero-text h1{font-size:40px}
+.hero-visual{display:none}
+.solution,.kids-inner{grid-template-columns:1fr}
+.timeline::before{left:24px}
+.timeline-dot{left:24px}
+.timeline-item,.timeline-item:nth-child(odd){flex-direction:column;align-items:flex-start;padding-left:60px}
+.timeline-content{width:100%}
+.feature-grid,.trust-grid,.testimonial-grid{grid-template-columns:1fr 1fr}
+.pricing-grid{grid-template-columns:1fr;max-width:400px;margin:0 auto}
+.price-card.popular{transform:none}
+.quote-grid{grid-template-columns:1fr}
+.footer-inner{grid-template-columns:1fr 1fr}
+}
+@media(max-width:640px){
+nav{padding:12px 20px}
+.nav-links{display:none}
+.mobile-btn{display:block}
+.hero{padding:80px 20px 40px}
+.hero-text h1{font-size:32px}
+.hero-btns{flex-direction:column}
+.section-title{font-size:28px}
+.feature-grid,.trust-grid,.testimonial-grid{grid-template-columns:1fr}
+.footer-inner{grid-template-columns:1fr}
+.footer-bottom{flex-direction:column;gap:8px}
+.social-proof{flex-direction:column;gap:20px}
+.proof-divider{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo"><div class="dot"><i class="fas fa-home" style="font-size:12px;color:var(--bg)"></i></div> FamilyOS</div>
+  <div class="nav-links">
+    <a href="#how">How It Works</a>
+    <a href="#features">Features</a>
+    <a href="#kids">For Kids</a>
+    <a href="#trust">Trust</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#cta" class="nav-cta">Start Free Trial</a>
+  </div>
+  <button class="mobile-btn" onclick="document.querySelector('.nav-links').style.display=document.querySelector('.nav-links').style.display==='flex'?'none':'flex'"><i class="fas fa-bars"></i></button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-text reveal">
+    <div class="hero-badge"><i class="fas fa-sparkles"></i> The Family Economy Operating System</div>
+    <h1>Where Families<br><span class="grad">Grow Together</span></h1>
+    <p>Replace daily battles with a living economy. Kids earn, bid, save, and learn real-world skills. Parents get AI-powered insights instead of arguments. Everyone wins.</p>
+    <div class="hero-btns">
+      <a href="#cta" class="btn-p"><i class="fas fa-rocket"></i> Start Free — No Card</a>
+      <a href="#how" class="btn-s"><i class="fas fa-play"></i> See How It Works</a>
+    </div>
+  </div>
+  <div class="hero-visual reveal d2">
+    <div class="hero-phone">
+      <div class="phone-notch"></div>
+      <div class="phone-screen">
+        <div class="phone-greeting">Good morning, Sarah 👋</div>
+        <div class="phone-card">
+          <div class="phone-card-icon" style="background:var(--amber-glow);color:var(--amber)"><i class="fas fa-fire"></i></div>
+          <div class="phone-card-info"><div class="phone-card-title">Family Streak</div><div class="phone-card-sub">12 days strong</div></div>
+          <div class="phone-card-value amber">🔥 12</div>
+        </div>
+        <div class="phone-card">
+          <div class="phone-card-icon" style="background:rgba(16,185,129,0.15);color:var(--green)"><i class="fas fa-check-circle"></i></div>
+          <div class="phone-card-info"><div class="phone-card-title">Tasks Today</div><div class="phone-card-sub">8 of 10 complete</div></div>
+          <div class="phone-card-value green">80%</div>
+        </div>
+        <div class="phone-card">
+          <div class="phone-card-icon" style="background:rgba(167,139,250,0.15);color:var(--violet)"><i class="fas fa-wallet"></i></div>
+          <div class="phone-card-info"><div class="phone-card-title">Family Wallet</div><div class="phone-card-sub">Total earned this week</div></div>
+          <div class="phone-card-value">$47.20</div>
+        </div>
+        <div class="phone-stats">
+          <div class="phone-stat"><div class="phone-stat-val">👧 94</div><div class="phone-stat-lbl">Emma Trust</div></div>
+          <div class="phone-stat"><div class="phone-stat-val">🧒 71</div><div class="phone-stat-lbl">Jake Trust</div></div>
+          <div class="phone-stat"><div class="phone-stat-val">💰 $6</div><div class="phone-stat-lbl">Tax Pool</div></div>
+        </div>
+      </div>
+      <div class="floating-badge top"><i class="fas fa-coins"></i> +15 Coins!</div>
+      <div class="floating-badge bottom"><i class="fas fa-trophy"></i> Level Up!</div>
+      <div class="floating-avatar a1"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Emma&backgroundColor=ffdfbf" alt="Emma"></div>
+      <div class="floating-avatar a2"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Jake&backgroundColor=ffd5dc" alt="Jake"></div>
+    </div>
+  </div>
+</section>
+
+<!-- SOCIAL PROOF -->
+<div class="social-proof reveal">
+  <div class="proof-item"><div class="proof-num">50K+</div><div class="proof-label">Families<br>Building</div></div>
+  <div class="proof-divider"></div>
+  <div class="proof-item"><div class="proof-num">2M+</div><div class="proof-label">Coins<br>Earned</div></div>
+  <div class="proof-divider"></div>
+  <div class="proof-item"><div class="proof-num">82%</div><div class="proof-label">Task Completion<br>Rate</div></div>
+  <div class="proof-divider"></div>
+  <div class="proof-item"><div class="proof-num">4.9</div><div class="proof-label">App Store<br>Rating</div></div>
+</div>
+
+<!-- PAIN -->
+<section class="pain">
+  <div class="pain-header">
+    <div class="section-label reveal">The Reality</div>
+    <div class="section-title reveal">We Hear You. We've Been Listening.</div>
+    <div class="section-sub reveal">Thousands of parents shared their daily challenges with us. Their words shaped every feature we built.</div>
+  </div>
+  <div class="quote-grid">
+    <div class="quote-card reveal">
+      <div class="quote-icon"><i class="fas fa-quote-left"></i></div>
+      <div class="quote-text">"I made a colourful chore chart, laminated it, used stickers… Worked for three days. Now it's invisible."</div>
+      <div class="quote-author">
+        <div class="quote-avatar"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah&backgroundColor=ffdfbf" alt=""></div>
+        <div><div class="quote-name">Sarah</div><div class="quote-role">Mom of a 10-year-old</div></div>
+      </div>
+    </div>
+    <div class="quote-card reveal d1">
+      <div class="quote-icon"><i class="fas fa-quote-left"></i></div>
+      <div class="quote-text">"Homework time is World War III. My 11-year-old would rather lie on the floor and cry than do a three-question worksheet."</div>
+      <div class="quote-author">
+        <div class="quote-avatar"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Michael&backgroundColor=b6e3f4" alt=""></div>
+        <div><div class="quote-name">Michael</div><div class="quote-role">Dad of two</div></div>
+      </div>
+    </div>
+    <div class="quote-card reveal d2">
+      <div class="quote-icon"><i class="fas fa-quote-left"></i></div>
+      <div class="quote-text">"My 14-year-old's entire personality has been replaced by his gaming headset. I feel like I've lost my child."</div>
+      <div class="quote-author">
+        <div class="quote-avatar"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Anonymous&backgroundColor=c0aede" alt=""></div>
+        <div><div class="quote-name">Anonymous</div><div class="quote-role">Reddit r/Parenting</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="pain-footer reveal">You're not alone. The tools available today are fragmented and outdated. <strong>We built something different.</strong></div>
+</section>
+
+<!-- SOLUTION -->
+<section class="solution">
+  <div class="solution-visual reveal">
+    <div class="solution-house">
+      <div class="house-emoji">🏠</div>
+      <div class="module-orbit">
+        <div class="orbit-item"><i class="fas fa-coins" style="color:var(--amber)"></i> Economy</div>
+        <div class="orbit-item"><i class="fas fa-book" style="color:var(--teal)"></i> Academics</div>
+        <div class="orbit-item"><i class="fas fa-lock" style="color:var(--violet)"></i> Focus</div>
+        <div class="orbit-item"><i class="fas fa-brain" style="color:var(--coral)"></i> AI Coach</div>
+        <div class="orbit-item"><i class="fas fa-shield" style="color:var(--green)"></i> Security</div>
+        <div class="orbit-item"><i class="fas fa-chart-line" style="color:var(--blue)"></i> Insights</div>
+      </div>
+    </div>
+  </div>
+  <div class="solution-text reveal d1">
+    <div class="section-label">The Solution</div>
+    <div class="section-title">It's a Home Operating System</div>
+    <p>Most apps track tasks. That's a digital checklist — and it fails because it ignores how children actually develop motivation and self-discipline.</p>
+    <p><strong>FamilyOS replaces enforcement with a living economy.</strong> Kids bid for premium jobs, build reputation scores, manage wallets, and pay a small family tax. They learn real-world skills — negotiation, scarcity, saving, and the value of consistent effort.</p>
+    <p>Meanwhile, parents get an AI-powered dashboard that shows not just <em>what</em> was done, but <strong>who your child is becoming</strong>.</p>
+    <a href="#how" class="btn-p" style="margin-top:12px"><i class="fas fa-arrow-down"></i> See How It Works</a>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how" id="how">
+  <div class="how-inner">
+    <div class="how-header">
+      <div class="section-label reveal">How It Works</div>
+      <div class="section-title reveal">Five Steps to a Thriving Home</div>
+    </div>
+    <div class="timeline">
+      <div class="timeline-item reveal">
+        <div class="timeline-content">
+          <div class="timeline-step">Step 1</div>
+          <div class="timeline-title">Build Your Family Profile</div>
+          <div class="timeline-desc">Answer a few questions about each child — age, learning style, personality, goals. The system adapts the economy for every kid individually.</div>
+        </div>
+        <div class="timeline-dot"><i class="fas fa-users"></i></div>
+      </div>
+      <div class="timeline-item reveal d1">
+        <div class="timeline-content">
+          <div class="timeline-step">Step 2</div>
+          <div class="timeline-title">Post Jobs to the Marketplace</div>
+          <div class="timeline-desc">Chores as standard tasks (fixed pay) or premium bounties (limited slots, bidding). Study sessions, reading goals, and sports practice count as paid work too.</div>
+        </div>
+        <div class="timeline-dot"><i class="fas fa-clipboard-list"></i></div>
+      </div>
+      <div class="timeline-item reveal d2">
+        <div class="timeline-content">
+          <div class="timeline-step">Step 3</div>
+          <div class="timeline-title">Kids Bid, Earn, and Grow</div>
+          <div class="timeline-desc">Children place bids, complete tasks, and submit evidence via live camera. They earn coins, build reputation, and unlock achievements — all on their own terms.</div>
+        </div>
+        <div class="timeline-dot"><i class="fas fa-trophy"></i></div>
+      </div>
+      <div class="timeline-item reveal d3">
+        <div class="timeline-content">
+          <div class="timeline-step">Step 4</div>
+          <div class="timeline-title">AI Coach Guides Everyone</div>
+          <div class="timeline-desc">Your child gets personalised encouragement and gentle nudges. You get insights like: "Emma's grades improved after she started studying before dinner."</div>
+        </div>
+        <div class="timeline-dot"><i class="fas fa-robot"></i></div>
+      </div>
+      <div class="timeline-item reveal">
+        <div class="timeline-content">
+          <div class="timeline-step">Step 5</div>
+          <div class="timeline-title">Monthly Family Town Hall</div>
+          <div class="timeline-desc">Gather for a celebration — see total earnings, tax contributions, grade improvements, and the "Most Improved" award. Use the tax pool for a family experience.</div>
+        </div>
+        <div class="timeline-dot"><i class="fas fa-party-horn"></i></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div class="features-header">
+    <div class="section-label reveal">Features</div>
+    <div class="section-title reveal">Six Pillars of the Family Economy</div>
+  </div>
+  <div class="feature-grid">
+    <div class="feature-card reveal">
+      <div class="feature-icon amber"><i class="fas fa-gavel"></i></div>
+      <div class="feature-tag">The Marketplace</div>
+      <div class="feature-title">Chores Become Strategy</div>
+      <div class="feature-desc">Kids bid for high-value tasks, compete with siblings, and manage wallets. Before-and-after photo reviews teach accountability.</div>
+    </div>
+    <div class="feature-card reveal d1">
+      <div class="feature-icon teal"><i class="fas fa-graduation-cap"></i></div>
+      <div class="feature-tag">Academics</div>
+      <div class="feature-title">Study Meets Reward</div>
+      <div class="feature-desc">Grades connect to the economy. A-grades earn bonuses. Struggling subjects trigger a compassionate AI study plan — never shame.</div>
+    </div>
+    <div class="feature-card reveal d2">
+      <div class="feature-icon violet"><i class="fas fa-focus"></i></div>
+      <div class="feature-tag">Focus Mode</div>
+      <div class="feature-title">Earned, Not Enforced</div>
+      <div class="feature-desc">Reading blocks gently lock recreational apps. Screen time becomes a resource children manage — not a privilege you remove.</div>
+    </div>
+    <div class="feature-card reveal">
+      <div class="feature-icon coral"><i class="fas fa-brain"></i></div>
+      <div class="feature-tag">AI Coach</div>
+      <div class="feature-title">A Guide, Not a Guard</div>
+      <div class="feature-desc">Growth-mindset language. Private conversations. The coach celebrates streaks, asks questions, and helps children reflect.</div>
+    </div>
+    <div class="feature-card reveal d1">
+      <div class="feature-icon green"><i class="fas fa-shield-halved"></i></div>
+      <div class="feature-tag">Security</div>
+      <div class="feature-title">Trust by Design</div>
+      <div class="feature-desc">Siblings can't see each other's wallets. Biometric login. Evidence fraud detection. COPPA and GDPR-K compliant.</div>
+    </div>
+    <div class="feature-card reveal d2">
+      <div class="feature-icon blue"><i class="fas fa-chart-pie"></i></div>
+      <div class="feature-tag">Family Vault</div>
+      <div class="feature-title">Monthly Celebration</div>
+      <div class="feature-desc">Automatic reports show earnings, grades, and growth. Use the tax pool for family experiences. Celebrate together.</div>
+    </div>
+  </div>
+</section>
+
+<!-- KIDS -->
+<section class="kids" id="kids">
+  <div class="kids-inner">
+    <div class="kids-text">
+      <div class="section-label reveal">For Children</div>
+      <div class="section-title reveal">They'll <em>Want</em> to Do Their Tasks.</div>
+      <p class="reveal">Behind the parent dashboard is a universe designed for them. A dragon's hoard of coins, a reputation score that unlocks elite quests, and a coach who celebrates every win.</p>
+      <p class="reveal"><strong style="color:var(--amber)">It's not chores. It's their personal adventure.</strong></p>
+      <ul class="kids-list reveal">
+        <li><div class="icon a"><i class="fas fa-coins"></i></div> Earn coins for every task completed</li>
+        <li><div class="icon t"><i class="fas fa-gavel"></i></div> Bid on premium jobs with real strategy</li>
+        <li><div class="icon v"><i class="fas fa-star"></i></div> Build reputation that unlocks privileges</li>
+        <li><div class="icon g"><i class="fas fa-piggy-bank"></i></div> Save for goals and watch money grow</li>
+        <li><div class="icon a"><i class="fas fa-trophy"></i></div> Compete with siblings on the leaderboard</li>
+        <li><div class="icon t"><i class="fas fa-robot"></i></div> Get a private AI coach who believes in you</li>
+      </ul>
+    </div>
+    <div class="kids-mockup reveal d2">
+      <div class="mockup-bar"><div class="mockup-dot"></div><div class="mockup-dot"></div><div class="mockup-dot"></div></div>
+      <div class="mockup-body">
+        <div class="mockup-header-row">
+          <div class="mockup-avatar"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Emma&backgroundColor=ffdfbf" alt="Emma"></div>
+          <div><div class="mockup-name">Hey, Emma! 👋</div><div class="mockup-level">Level 5 Champion · 🔥 8 streak</div></div>
+        </div>
+        <div class="mockup-row done"><div class="mockup-row-icon">🧹</div><div class="mockup-row-title">Make Bed</div><div class="mockup-row-xp">✅ +5 XP</div></div>
+        <div class="mockup-row done"><div class="mockup-row-icon">🪥</div><div class="mockup-row-title">Brush Teeth</div><div class="mockup-row-xp">✅ +5 XP</div></div>
+        <div class="mockup-row"><div class="mockup-row-icon">🧹</div><div class="mockup-row-title">Clean Room</div><div class="mockup-row-xp">+15 XP</div></div>
+        <div class="mockup-row"><div class="mockup-row-icon">🍽️</div><div class="mockup-row-title">Do Dishes</div><div class="mockup-row-xp">+10 XP</div></div>
+        <div class="mockup-row"><div class="mockup-row-icon">📚</div><div class="mockup-row-title">Math Homework</div><div class="mockup-row-xp">+25 XP</div></div>
+        <div class="mockup-stats">
+          <div class="mockup-stat"><div class="mockup-stat-val">$18.50</div><div class="mockup-stat-lbl">Earned</div></div>
+          <div class="mockup-stat"><div class="mockup-stat-val">94</div><div class="mockup-stat-lbl">Trust Score</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TRUST -->
+<section class="trust" id="trust">
+  <div class="trust-header">
+    <div class="section-label reveal">Trust & Safety</div>
+    <div class="section-title reveal">Built for Families, Fortified for Privacy</div>
+  </div>
+  <div class="trust-grid">
+    <div class="trust-card reveal"><div class="trust-icon"><i class="fas fa-lock"></i></div><div class="trust-title">Child-to-Child Firewall</div><div class="trust-desc">Siblings cannot see each other's wallets, grades, or conversations. Each child has their own private space.</div></div>
+    <div class="trust-card reveal d1"><div class="trust-icon"><i class="fas fa-child"></i></div><div class="trust-title">COPPA & GDPR-K</div><div class="trust-desc">Verifiable parental consent. Data minimisation. Right to deletion. Children's data is never sold.</div></div>
+    <div class="trust-card reveal d2"><div class="trust-icon"><i class="fas fa-eye-slash"></i></div><div class="trust-title">Privacy Firewall</div><div class="trust-desc">Parents see insights and trends — never raw coach conversations. Children need a space to be honest.</div></div>
+    <div class="trust-card reveal"><div class="trust-icon"><i class="fas fa-fingerprint"></i></div><div class="trust-title">Biometric Auth</div><div class="trust-desc">PIN + biometrics. No sibling can impersonate another. Device fingerprinting prevents workarounds.</div></div>
+    <div class="trust-card reveal d1"><div class="trust-icon"><i class="fas fa-camera"></i></div><div class="trust-title">Evidence Integrity</div><div class="trust-desc">Before/after photos are time-stamped and AI-checked. Fraud detection flags suspicious submissions.</div></div>
+    <div class="trust-card reveal d2"><div class="trust-icon"><i class="fas fa-sliders"></i></div><div class="trust-title">Parent Controls</div><div class="trust-desc">Bid visibility, leaderboard settings, economy parameters. Everything auditable, nothing hidden.</div></div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="testimonials">
+  <div class="testimonials-inner">
+    <div class="testimonials-header">
+      <div class="section-label reveal">What Parents Say</div>
+      <div class="section-title reveal">Real Families, Real Transformation</div>
+    </div>
+    <div class="testimonial-grid">
+      <div class="testimonial-card reveal">
+        <div class="testimonial-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+        <div class="testimonial-quote">"My son used to ignore the dishwasher. Yesterday he bid $1 of his own money to wash the car because he wanted the reputation boost. I almost cried."</div>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Jess&backgroundColor=ffdfbf" alt=""></div>
+          <div><div class="testimonial-name">Jess</div><div class="testimonial-role">Mother of three</div></div>
+        </div>
+      </div>
+      <div class="testimonial-card reveal d1">
+        <div class="testimonial-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+        <div class="testimonial-quote">"Screen time battles are gone. My daughter now comes to me and asks, 'Can I earn 30 more minutes by doing my science review?' That's a miracle."</div>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=David&backgroundColor=b6e3f4" alt=""></div>
+          <div><div class="testimonial-name">David</div><div class="testimonial-role">Father of a 13-year-old</div></div>
+        </div>
+      </div>
+      <div class="testimonial-card reveal d2">
+        <div class="testimonial-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+        <div class="testimonial-quote">"The monthly report gave us a way to talk about money, effort, and goals without it becoming a lecture. My kids actually look forward to the Town Hall."</div>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Priya&backgroundColor=c0aede" alt=""></div>
+          <div><div class="testimonial-name">Priya</div><div class="testimonial-role">Mom of two</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing" id="pricing">
+  <div class="pricing-header">
+    <div class="section-label reveal">Pricing</div>
+    <div class="section-title reveal">Start Free. Grow With Your Family.</div>
+    <div class="section-sub reveal" style="margin:16px auto 0;text-align:center">No credit card required. Cancel anytime.</div>
+  </div>
+  <div class="pricing-grid">
+    <div class="price-card reveal">
+      <div class="price-name">Basic</div>
+      <div class="price-amount">Free</div>
+      <div class="price-desc">1 child · Core features</div>
+      <ul class="price-features">
+        <li><i class="fas fa-check"></i> Basic job board</li>
+        <li><i class="fas fa-check"></i> Wallet & earnings</li>
+        <li><i class="fas fa-check"></i> Evidence review</li>
+        <li><i class="fas fa-check"></i> 5 AI insights/month</li>
+        <li><i class="fas fa-check"></i> Community support</li>
+      </ul>
+      <button class="price-btn secondary">Get Started</button>
+    </div>
+    <div class="price-card popular reveal d1">
+      <div class="price-name">Family</div>
+      <div class="price-amount">$9<span>.99/mo</span></div>
+      <div class="price-desc">Up to 4 children · Full economy</div>
+      <ul class="price-features">
+        <li><i class="fas fa-check"></i> Everything in Basic</li>
+        <li><i class="fas fa-check"></i> Bidding & premium jobs</li>
+        <li><i class="fas fa-check"></i> Academic tracker</li>
+        <li><i class="fas fa-check"></i> Focus mode</li>
+        <li><i class="fas fa-check"></i> Unlimited AI insights</li>
+        <li><i class="fas fa-check"></i> AI child coach</li>
+        <li><i class="fas fa-check"></i> Monthly vault reports</li>
+      </ul>
+      <button class="price-btn primary">Start 30-Day Free Trial</button>
+    </div>
+    <div class="price-card reveal d2">
+      <div class="price-name">Family Plus</div>
+      <div class="price-amount">$14<span>.99/mo</span></div>
+      <div class="price-desc">Up to 8 children · Advanced</div>
+      <ul class="price-features">
+        <li><i class="fas fa-check"></i> Everything in Family</li>
+        <li><i class="fas fa-check"></i> Extended family access</li>
+        <li><i class="fas fa-check"></i> Advanced analytics</li>
+        <li><i class="fas fa-check"></i> Custom tax policies</li>
+        <li><i class="fas fa-check"></i> Priority support</li>
+        <li><i class="fas fa-check"></i> Investment simulator</li>
+      </ul>
+      <button class="price-btn secondary">Start Free Trial</button>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="final-cta" id="cta">
+  <h2 class="reveal">Join Thousands of Families<br>Building Something Better</h2>
+  <p class="reveal">Start your family economy today. No credit card. No commitment. Just a home where everyone grows.</p>
+  <a href="#" class="btn-p reveal" style="font-size:17px;padding:18px 40px"><i class="fas fa-rocket"></i> Build Your Family Economy — Free</a>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div>
+      <div class="footer-brand"><i class="fas fa-home" style="color:var(--amber)"></i> FamilyOS</div>
+      <div class="footer-desc">The Family Economy Operating System. Replace daily battles with a living economy where kids earn, save, and grow — while parents get AI-powered insights.</div>
+    </div>
+    <div class="footer-col"><h4>Product</h4><a href="#features">Features</a><a href="#how">How It Works</a><a href="#pricing">Pricing</a><a href="#">For Schools</a></div>
+    <div class="footer-col"><h4>Company</h4><a href="#">About</a><a href="#">Blog</a><a href="#">Careers</a><a href="#">Press</a></div>
+    <div class="footer-col"><h4>Support</h4><a href="#">FAQs</a><a href="#">Contact</a><a href="#">Privacy Policy</a><a href="#">Terms</a></div>
+  </div>
+  <div class="footer-bottom"><span>© 2026 FamilyOS. All rights reserved.</span><span>Built with ❤️ for families who want cooperation, not conflict.</span></div>
+</footer>
+
+<script>
+const obs=new IntersectionObserver(e=>{e.forEach(i=>{if(i.isIntersecting)i.target.classList.add('visible')})},{threshold:0.1,rootMargin:'0px 0px -40px 0px'});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+window.addEventListener('scroll',()=>document.querySelector('nav').style.boxShadow=window.scrollY>50?'0 4px 20px rgba(0,0,0,0.3)':'none');
+document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click',e=>{e.preventDefault();const t=document.querySelector(a.getAttribute('href'));if(t)t.scrollIntoView({behavior:'smooth'})})});
+</script>
+</body>
+</html>
