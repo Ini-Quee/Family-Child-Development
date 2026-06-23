@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.expo/
+*.db
+.env
+*.log
+.DS_Store
+Thumbs.db
+capture-screens.js
+capture-v2.js
+wireframes.html
+wireframes-v2.html
+wireframes-v3.html

@@ -1,0 +1,17 @@
+{
+  "name": "familyos",
+  "version": "1.0.0",
+  "description": "FamilyOS — The Family Operating System",
+  "private": true,
+  "scripts": {
+    "backend": "cd backend && npm run dev",
+    "frontend": "cd frontend && npx expo start",
+    "db:migrate": "cd backend && npm run db:migrate",
+    "db:seed": "cd backend && npm run db:seed",
+    "setup": "cd backend && npm install && cd ../frontend && npm install",
+    "start": "echo 'Run npm run backend and npm run frontend in separate terminals'"
+  },
+  "dependencies": {
+    "puppeteer": "^25.2.0"
+  }
+}
